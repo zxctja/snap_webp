@@ -23,9 +23,9 @@
 
 // #define PRINT_MEMORY_INFO
 
-#ifdef PRINT_MEMORY_INFO
+//#ifdef PRINT_MEMORY_INFO
 #include <stdio.h>
-#endif
+//#endif
 
 //------------------------------------------------------------------------------
 
