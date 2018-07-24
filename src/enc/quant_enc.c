@@ -765,17 +765,30 @@ static int ReconstructIntra16(VP8EncIterator* const it,
   int16_t tmp[16][16], dc_tmp[16];
 
   struct timespec time_start={0, 0},time_end={0, 0};
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //clock_gettime(CLOCK_REALTIME, &time_start);
 
   for (n = 0; n < 16; n += 2) {
     VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
   }
 
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
 
   VP8FTransformWHT(tmp[0], dc_tmp);
+
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "WHT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
+
   nz |= VP8EncQuantizeBlockWHT(dc_tmp, rd->y_dc_levels, &dqm->y2_) << 24;
+  
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "DC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
 
   if (DO_TRELLIS_I16 && it->do_trellis_) {
     int x, y;
@@ -801,6 +814,9 @@ static int ReconstructIntra16(VP8EncIterator* const it,
       assert(rd->y_ac_levels[n + 1][0] == 0);
     }
   }
+
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "AC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
   // Transform back
   VP8TransformWHT(dc_tmp, tmp[0]);
