@@ -15,8 +15,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-//#include <sys/time.h>
-//#include <stdio.h>
+#include <sys/time.h>
+#include <stdio.h>
 
 #include "src/enc/cost_enc.h"
 #include "src/enc/vp8i_enc.h"
@@ -374,6 +374,38 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
     if (!config->exact) {
       WebPCleanupTransparentArea(pic);
     }
+	struct timespec time_start={0, 0},time_end={0, 0};
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	clock_gettime(CLOCK_REALTIME, &time_start);
+	clock_gettime(CLOCK_REALTIME, &time_end);
+	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
 
 //	struct timespec time_start={0, 0},time_end={0, 0};
 //	clock_gettime(CLOCK_REALTIME, &time_start);

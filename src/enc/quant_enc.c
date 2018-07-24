@@ -1045,13 +1045,13 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
 
     // Reconstruct
 
-	struct timespec time_start={0, 0},time_end={0, 0};
-	clock_gettime(CLOCK_REALTIME, &time_start);
+	//struct timespec time_start={0, 0},time_end={0, 0};
+	//clock_gettime(CLOCK_REALTIME, &time_start);
 
     rd_cur->nz = ReconstructIntra16(it, rd_cur, tmp_dst, mode);
 
-	clock_gettime(CLOCK_REALTIME, &time_end);
-    fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	//clock_gettime(CLOCK_REALTIME, &time_end);
+    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 	
 
 	//struct timespec time_start={0, 0},time_end={0, 0};
