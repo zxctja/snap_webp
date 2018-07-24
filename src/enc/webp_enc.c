@@ -374,8 +374,13 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
     if (!config->exact) {
       WebPCleanupTransparentArea(pic);
     }
+<<<<<<< HEAD
 	//struct timeval etime, stime;
 	//gettimeofday(&stime, NULL);
+=======
+	struct timeval etime, stime;
+	gettimeofday(&stime, NULL);
+>>>>>>> 44396ec353e7ac5d7b1fca5da9528b34204279ad
 
     enc = InitVP8Encoder(config, pic);
     if (enc == NULL) return 0;  // pic->error is already set.
@@ -397,8 +402,13 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
       VP8EncFreeBitWriters(enc);
     }
     ok &= DeleteVP8Encoder(enc);  // must always be called, even if !ok  
+<<<<<<< HEAD
 	//gettimeofday(&etime, NULL);
 	//fprintf(stdout, "%lld usec\n",(long long)((double)(((&etime)->tv_sec * 1000000 + (&etime)->tv_usec) - ((&stime)->tv_sec * 1000000 + (&stime)->tv_usec))));	
+=======
+	gettimeofday(&etime, NULL);
+	fprintf(stdout, "%lld usec\n",(long long)((double)(((&etime)->tv_sec * 1000000 + (&etime)->tv_usec) - ((&stime)->tv_sec * 1000000 + (&stime)->tv_usec))));	
+>>>>>>> 44396ec353e7ac5d7b1fca5da9528b34204279ad
   } else {
     // Make sure we have ARGB samples.
     if (pic->argb == NULL && !WebPPictureYUVAToARGB(pic)) {
