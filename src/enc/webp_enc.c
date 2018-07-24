@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include "src/enc/cost_enc.h"
 #include "src/enc/vp8i_enc.h"
@@ -350,6 +351,8 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
 
     if (pic->use_argb || pic->y == NULL || pic->u == NULL || pic->v == NULL) {
       // Make sure we have YUVA samples.
+      	struct timeval etime, stime;
+		gettimeofday(&stime, NULL);
       if (config->use_sharp_yuv || (config->preprocessing & 4)) {
         if (!WebPPictureSharpARGBToYUVA(pic)) {
           return 0;
@@ -367,6 +370,8 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
           return 0;
         }
       }
+	gettimeofday(&etime, NULL);
+	fprintf(stdout, "%lld usec\n",(long long)((double)(((&etime)->tv_sec * 1000000 + (&etime)->tv_usec) - ((&stime)->tv_sec * 1000000 + (&stime)->tv_usec))));	  
     }
 
     if (!config->exact) {
