@@ -764,15 +764,72 @@ static int ReconstructIntra16(VP8EncIterator* const it,
   int n;
   int16_t tmp[16][16], dc_tmp[16];
 
-  //struct timespec time_start={0, 0},time_end={0, 0};
-  //clock_gettime(CLOCK_REALTIME, &time_start);
+  struct timespec time_start={0, 0},time_end={0, 0};
+  clock_gettime(CLOCK_REALTIME, &time_start);
 
   for (n = 0; n < 16; n += 2) {
     VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
   }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
+  for (n = 0; n < 16; n += 2) {
+    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  }
 
-  //clock_gettime(CLOCK_REALTIME, &time_end);
-  //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
   //clock_gettime(CLOCK_REALTIME, &time_start);
 
@@ -1404,58 +1461,20 @@ int VP8Decimate(VP8EncIterator* const it, VP8ModeScore* const rd,
   // We can perform predictions for Luma16x16 and Chroma8x8 already.
   // Luma4x4 predictions needs to be done as-we-go.
   
-  struct timespec time_start={0, 0},time_end={0, 0};
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //struct timespec time_start={0, 0},time_end={0, 0};
+  //clock_gettime(CLOCK_REALTIME, &time_start);
 
   VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
-  VP8MakeLuma16Preds(it);
   
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "16:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));  
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "16:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));  
   
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //clock_gettime(CLOCK_REALTIME, &time_start);
   
   VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-  VP8MakeChroma8Preds(it);
-
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "8:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "8:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
   if (rd_opt > RD_OPT_NONE) {
     it->do_trellis_ = (rd_opt >= RD_OPT_TRELLIS_ALL);
