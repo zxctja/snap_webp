@@ -1044,10 +1044,18 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     rd_cur->mode_i16 = mode;
 
     // Reconstruct
-    rd_cur->nz = ReconstructIntra16(it, rd_cur, tmp_dst, mode);
 
 	struct timespec time_start={0, 0},time_end={0, 0};
 	clock_gettime(CLOCK_REALTIME, &time_start);
+
+    rd_cur->nz = ReconstructIntra16(it, rd_cur, tmp_dst, mode);
+
+	clock_gettime(CLOCK_REALTIME, &time_end);
+    fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	
+
+	//struct timespec time_start={0, 0},time_end={0, 0};
+	//clock_gettime(CLOCK_REALTIME, &time_start);
 
     // Measure RD-score
     rd_cur->D = VP8SSE16x16(src, tmp_dst);
@@ -1064,8 +1072,8 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     // Since we always examine Intra16 first, we can overwrite *rd directly.
     SetRDScore(lambda, rd_cur);
 
-	clock_gettime(CLOCK_REALTIME, &time_end);
-    fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	//clock_gettime(CLOCK_REALTIME, &time_end);
+    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 	
     if (mode == 0 || rd_cur->score < rd_best->score) {
       SwapModeScore(&rd_cur, &rd_best);
@@ -1127,7 +1135,15 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
     uint8_t* tmp_dst = it->yuv_p_ + I4TMP;    // scratch buffer.
 
     InitScore(&rd_i4);
+	
+	//struct timespec time_start={0, 0},time_end={0, 0};
+    //clock_gettime(CLOCK_REALTIME, &time_start);
+	
     VP8MakeIntra4Preds(it);
+
+	//clock_gettime(CLOCK_REALTIME, &time_end);
+    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	
     for (mode = 0; mode < NUM_BMODES; ++mode) {
       VP8ModeScore rd_tmp;
       int16_t tmp_levels[16];
