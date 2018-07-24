@@ -14,6 +14,8 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>  // for abs()
+#include <stdio.h>
+#include <sys/time.h>
 
 #include "src/enc/vp8i_enc.h"
 #include "src/enc/cost_enc.h"
@@ -1343,8 +1345,15 @@ int VP8Decimate(VP8EncIterator* const it, VP8ModeScore* const rd,
 
   // We can perform predictions for Luma16x16 and Chroma8x8 already.
   // Luma4x4 predictions needs to be done as-we-go.
+  struct timeval etime, stime;
+  gettimeofday(&stime, NULL);
   VP8MakeLuma16Preds(it);
+  gettimeofday(&etime, NULL);
+  fprintf(stdout, "%lld usec\n",(long long)((double)(((&etime)->tv_sec * 1000000 + (&etime)->tv_usec) - ((&stime)->tv_sec * 1000000 + (&stime)->tv_usec))));
+  gettimeofday(&stime, NULL);
   VP8MakeChroma8Preds(it);
+  gettimeofday(&etime, NULL);
+  fprintf(stdout, "%lld usec\n",(long long)((double)(((&etime)->tv_sec * 1000000 + (&etime)->tv_usec) - ((&stime)->tv_sec * 1000000 + (&stime)->tv_usec))));
 
   if (rd_opt > RD_OPT_NONE) {
     it->do_trellis_ = (rd_opt >= RD_OPT_TRELLIS_ALL);

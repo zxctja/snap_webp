@@ -352,8 +352,6 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
 
     if (pic->use_argb || pic->y == NULL || pic->u == NULL || pic->v == NULL) {
       // Make sure we have YUVA samples.
-      	struct timeval etime, stime;
-		gettimeofday(&stime, NULL);
       if (config->use_sharp_yuv || (config->preprocessing & 4)) {
         if (!WebPPictureSharpARGBToYUVA(pic)) {
           return 0;
@@ -370,14 +368,14 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
         if (!WebPPictureARGBToYUVADithered(pic, WEBP_YUV420, dithering)) {
           return 0;
         }
-      }
-	gettimeofday(&etime, NULL);
-	fprintf(stdout, "%lld usec\n",(long long)((double)(((&etime)->tv_sec * 1000000 + (&etime)->tv_usec) - ((&stime)->tv_sec * 1000000 + (&stime)->tv_usec))));	  
+      }  
     }
 
     if (!config->exact) {
       WebPCleanupTransparentArea(pic);
     }
+	//struct timeval etime, stime;
+	//gettimeofday(&stime, NULL);
 
     enc = InitVP8Encoder(config, pic);
     if (enc == NULL) return 0;  // pic->error is already set.
@@ -398,7 +396,9 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
     if (!ok) {
       VP8EncFreeBitWriters(enc);
     }
-    ok &= DeleteVP8Encoder(enc);  // must always be called, even if !ok
+    ok &= DeleteVP8Encoder(enc);  // must always be called, even if !ok  
+	//gettimeofday(&etime, NULL);
+	//fprintf(stdout, "%lld usec\n",(long long)((double)(((&etime)->tv_sec * 1000000 + (&etime)->tv_usec) - ((&stime)->tv_sec * 1000000 + (&stime)->tv_usec))));	
   } else {
     // Make sure we have ARGB samples.
     if (pic->argb == NULL && !WebPPictureYUVAToARGB(pic)) {
