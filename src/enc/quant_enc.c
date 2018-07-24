@@ -971,10 +971,76 @@ static int ReconstructUV(VP8EncIterator* const it, VP8ModeScore* const rd,
   int n;
   int16_t tmp[8][16];
 
+  struct timespec time_start={0, 0},time_end={0, 0};
+  clock_gettime(CLOCK_REALTIME, &time_start);
+
   for (n = 0; n < 8; n += 2) {
     VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
   }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  }
+
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "FDCT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
   if (it->top_derr_ != NULL) CorrectDCValues(it, &dqm->uv_, tmp, rd);
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
 
   if (DO_TRELLIS_UV && it->do_trellis_) {
     int ch, x, y;
@@ -995,10 +1061,437 @@ static int ReconstructUV(VP8EncIterator* const it, VP8ModeScore* const rd,
       nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
     }
   }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+  if (DO_TRELLIS_UV && it->do_trellis_) {
+    int ch, x, y;
+    for (ch = 0, n = 0; ch <= 2; ch += 2) {
+      for (y = 0; y < 2; ++y) {
+        for (x = 0; x < 2; ++x, ++n) {
+          const int ctx = it->top_nz_[4 + ch + x] + it->left_nz_[4 + ch + y];
+          const int non_zero =
+              TrellisQuantizeBlock(enc, tmp[n], rd->uv_levels[n], ctx, 2,
+                                   &dqm->uv_, dqm->lambda_trellis_uv_);
+          it->top_nz_[4 + ch + x] = it->left_nz_[4 + ch + y] = non_zero;
+          nz |= non_zero << n;
+        }
+      }
+    }
+  } else {
+    for (n = 0; n < 8; n += 2) {
+      nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+    }
+  }
+
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "AC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
 
   for (n = 0; n < 8; n += 2) {
     VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
   }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+  for (n = 0; n < 8; n += 2) {
+    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  }
+
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "IDCT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
   return (nz << 16);
 }
 
@@ -1155,7 +1648,7 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
 
     InitScore(&rd_i4);
 	
-	struct timespec time_start={0, 0},time_end={0, 0};
+	//struct timespec time_start={0, 0},time_end={0, 0};
     //clock_gettime(CLOCK_REALTIME, &time_start);
 	
     VP8MakeIntra4Preds(it);
@@ -1171,7 +1664,7 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
       rd_tmp.nz =
           ReconstructIntra4(it, tmp_levels, src, tmp_dst, mode) << it->i4_;
 
-	  clock_gettime(CLOCK_REALTIME, &time_start);
+	  //clock_gettime(CLOCK_REALTIME, &time_start);
 
       // Compute RD-score
       rd_tmp.D = VP8SSE4x4(src, tmp_dst);
@@ -1194,389 +1687,9 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
       // finish computing score
       rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
       SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
 
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-      rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-	  rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
-      rd_tmp.H = mode_costs[mode];
-
-      // Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
-      SetRDScore(lambda, &rd_tmp);
-
-	  clock_gettime(CLOCK_REALTIME, &time_end);
-	  fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	  //clock_gettime(CLOCK_REALTIME, &time_end);
+	  //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
       if (best_mode < 0 || rd_tmp.score < rd_i4.score) {
         CopyScore(&rd_i4, &rd_tmp);
