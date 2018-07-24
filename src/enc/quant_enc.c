@@ -774,21 +774,21 @@ static int ReconstructIntra16(VP8EncIterator* const it,
   //clock_gettime(CLOCK_REALTIME, &time_end);
   //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //clock_gettime(CLOCK_REALTIME, &time_start);
 
   VP8FTransformWHT(tmp[0], dc_tmp);
 
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "WHT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "WHT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //clock_gettime(CLOCK_REALTIME, &time_start);
 
   nz |= VP8EncQuantizeBlockWHT(dc_tmp, rd->y_dc_levels, &dqm->y2_) << 24;
   
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "DC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "DC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //clock_gettime(CLOCK_REALTIME, &time_start);
 
   if (DO_TRELLIS_I16 && it->do_trellis_) {
     int x, y;
@@ -815,14 +815,26 @@ static int ReconstructIntra16(VP8EncIterator* const it,
     }
   }
 
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "AC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "AC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
   // Transform back
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
+  
   VP8TransformWHT(dc_tmp, tmp[0]);
+
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "IWHT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
+   
   for (n = 0; n < 16; n += 2) {
     VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
   }
+
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "IDCT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
   return nz;
 }
