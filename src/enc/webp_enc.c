@@ -16,6 +16,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
+#include <stdio.h>
 
 #include "src/enc/cost_enc.h"
 #include "src/enc/vp8i_enc.h"
