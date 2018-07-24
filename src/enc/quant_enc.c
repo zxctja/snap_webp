@@ -764,7 +764,7 @@ static int ReconstructIntra16(VP8EncIterator* const it,
   int n;
   int16_t tmp[16][16], dc_tmp[16];
 
-  struct timespec time_start={0, 0},time_end={0, 0};
+  //struct timespec time_start={0, 0},time_end={0, 0};
   //clock_gettime(CLOCK_REALTIME, &time_start);
 
   for (n = 0; n < 16; n += 2) {
@@ -849,8 +849,36 @@ static int ReconstructIntra4(VP8EncIterator* const it,
   const VP8SegmentInfo* const dqm = &enc->dqm_[it->mb_->segment_];
   int nz = 0;
   int16_t tmp[16];
+  
+  struct timespec time_start={0, 0},time_end={0, 0};
+  clock_gettime(CLOCK_REALTIME, &time_start);
 
   VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  VP8FTransform(src, ref, tmp);
+  
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "FDCT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  
+  clock_gettime(CLOCK_REALTIME, &time_start);
+  
   if (DO_TRELLIS_I4 && it->do_trellis_) {
     const int x = it->i4_ & 3, y = it->i4_ >> 2;
     const int ctx = it->top_nz_[x] + it->left_nz_[y];
@@ -859,7 +887,188 @@ static int ReconstructIntra4(VP8EncIterator* const it,
   } else {
     nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
   }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  if (DO_TRELLIS_I4 && it->do_trellis_) {
+    const int x = it->i4_ & 3, y = it->i4_ >> 2;
+    const int ctx = it->top_nz_[x] + it->left_nz_[y];
+    nz = TrellisQuantizeBlock(enc, tmp, levels, ctx, 3, &dqm->y1_,
+                              dqm->lambda_trellis_i4_);
+  } else {
+    nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
+  }
+  
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "AC:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+
+  clock_gettime(CLOCK_REALTIME, &time_start);
+
   VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+  VP8ITransform(ref, tmp, yuv_out, 0);
+    
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "IDCT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  
   return nz;
 }
 
@@ -1136,32 +1345,13 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
 
     InitScore(&rd_i4);
 	
-	struct timespec time_start={0, 0},time_end={0, 0};
-    clock_gettime(CLOCK_REALTIME, &time_start);
+	//struct timespec time_start={0, 0},time_end={0, 0};
+    //clock_gettime(CLOCK_REALTIME, &time_start);
 	
     VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);	
-    VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
-	VP8MakeIntra4Preds(it);
 
-	clock_gettime(CLOCK_REALTIME, &time_end);
-    fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+	//clock_gettime(CLOCK_REALTIME, &time_end);
+    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 	
     for (mode = 0; mode < NUM_BMODES; ++mode) {
       VP8ModeScore rd_tmp;
