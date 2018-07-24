@@ -376,42 +376,6 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
     if (!config->exact) {
       WebPCleanupTransparentArea(pic);
     }
-	pthread_mutex_t mutex_;
-	pthread_mutex_init(&mutex_, NULL);
-	pthread_mutex_lock(&mutex_);
-	struct timespec time_start={0, 0},time_end={0, 0};
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	clock_gettime(CLOCK_REALTIME, &time_start);
-	clock_gettime(CLOCK_REALTIME, &time_end);
-	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	pthread_mutex_unlock(&mutex_);
-
 
 //	struct timespec time_start={0, 0},time_end={0, 0};
 //	clock_gettime(CLOCK_REALTIME, &time_start);
