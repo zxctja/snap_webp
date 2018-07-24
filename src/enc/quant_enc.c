@@ -820,97 +820,21 @@ static int ReconstructIntra16(VP8EncIterator* const it,
 
   // Transform back
 
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //clock_gettime(CLOCK_REALTIME, &time_start);
   
   VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  VP8TransformWHT(dc_tmp, tmp[0]);
 
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "IWHT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "IWHT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
-  clock_gettime(CLOCK_REALTIME, &time_start);
+  //clock_gettime(CLOCK_REALTIME, &time_start);
    
   for (n = 0; n < 16; n += 2) {
     VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
   }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
-  }
 
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  fprintf(stdout, "IDCT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  //clock_gettime(CLOCK_REALTIME, &time_end);
+  //fprintf(stdout, "IDCT:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
   return nz;
 }
@@ -1130,8 +1054,8 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 	
 
-	//struct timespec time_start={0, 0},time_end={0, 0};
-	//clock_gettime(CLOCK_REALTIME, &time_start);
+	struct timespec time_start={0, 0},time_end={0, 0};
+	clock_gettime(CLOCK_REALTIME, &time_start);
 
     // Measure RD-score
     rd_cur->D = VP8SSE16x16(src, tmp_dst);
@@ -1147,9 +1071,257 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
 
     // Since we always examine Intra16 first, we can overwrite *rd directly.
     SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
 
-	//clock_gettime(CLOCK_REALTIME, &time_end);
-    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+    // Measure RD-score
+    rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+	rd_cur->D = VP8SSE16x16(src, tmp_dst);
+    rd_cur->SD =
+        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->H = VP8FixedCostsI16[mode];
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+
+    // Since we always examine Intra16 first, we can overwrite *rd directly.
+    SetRDScore(lambda, rd_cur);
+
+	clock_gettime(CLOCK_REALTIME, &time_end);
+    fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 	
     if (mode == 0 || rd_cur->score < rd_best->score) {
       SwapModeScore(&rd_cur, &rd_best);
