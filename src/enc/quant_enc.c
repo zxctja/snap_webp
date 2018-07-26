@@ -1453,8 +1453,8 @@ int VP8Decimate(VP8EncIterator* const it, VP8ModeScore* const rd,
   // We can perform predictions for Luma16x16 and Chroma8x8 already.
   // Luma4x4 predictions needs to be done as-we-go.
   
-  //struct timespec time_start={0, 0},time_end={0, 0};
-  //clock_gettime(CLOCK_REALTIME, &time_start);
+  struct timespec time_start={0, 0},time_end={0, 0};
+  clock_gettime(CLOCK_REALTIME, &time_start);
 
   VP8MakeLuma16Preds(it);
   
@@ -1486,6 +1486,10 @@ int VP8Decimate(VP8EncIterator* const it, VP8ModeScore* const rd,
     // quantization/reconstruction.
     RefineUsingDistortion(it, (method >= 2), (method >= 1), rd);
   }
+  
+  clock_gettime(CLOCK_REALTIME, &time_end);
+  fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
+  
   is_skipped = (rd->nz == 0);
   VP8SetSkip(it, is_skipped);
   return is_skipped;
