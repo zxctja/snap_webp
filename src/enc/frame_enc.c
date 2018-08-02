@@ -812,11 +812,11 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
     do {
       VP8ModeScore info;
       VP8IteratorImport(&it, NULL);
-      if (--cnt < 0) {
-        FinalizeTokenProbas(proba);
-        VP8CalculateLevelCosts(proba);  // refresh cost tables for rd-opt
-        cnt = max_count;
-      }
+      //if (--cnt < 0) {
+      //  FinalizeTokenProbas(proba);
+      //  VP8CalculateLevelCosts(proba);  // refresh cost tables for rd-opt
+      //  cnt = max_count;
+      //}
       VP8Decimate(&it, &info, rd_opt);
       ok = RecordTokens(&it, &info, &enc->tokens_);
       if (!ok) {
