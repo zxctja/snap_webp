@@ -699,8 +699,6 @@ int main(int argc, const char *argv[]) {
     } else if (!strcmp(argv[c], "-print_lsim")) {
       config.show_compressed = 1;
       print_distortion = 2;
-    } else if (!strcmp(argv[c], "-short")) {
-      ++short_output;
     } else if (!strcmp(argv[c], "-s") && c < argc - 2) {
       picture.width = ExUtilGetInt(argv[++c], 0, &parse_error);
       picture.height = ExUtilGetInt(argv[++c], 0, &parse_error);
@@ -819,8 +817,6 @@ int main(int argc, const char *argv[]) {
       return 0;
     } else if (!strcmp(argv[c], "-progress")) {
       show_progress = 1;
-    } else if (!strcmp(argv[c], "-quiet")) {
-      quiet = 1;
     } else if (!strcmp(argv[c], "-preset") && c < argc - 1) {
       WebPPreset preset;
       ++c;
@@ -844,53 +840,7 @@ int main(int argc, const char *argv[]) {
         fprintf(stderr, "Error! Could initialize configuration with preset.\n");
         goto Error;
       }
-    } else if (!strcmp(argv[c], "-metadata") && c < argc - 1) {
-      static const struct {
-        const char* option;
-        int flag;
-      } kTokens[] = {
-        { "all",  METADATA_ALL },
-        { "none", 0 },
-        { "exif", METADATA_EXIF },
-        { "icc",  METADATA_ICC },
-        { "xmp",  METADATA_XMP },
-      };
-      const size_t kNumTokens = sizeof(kTokens) / sizeof(kTokens[0]);
-      const char* start = argv[++c];
-      const char* const end = start + strlen(start);
-
-      while (start < end) {
-        size_t i;
-        const char* token = strchr(start, ',');
-        if (token == NULL) token = end;
-
-        for (i = 0; i < kNumTokens; ++i) {
-          if ((size_t)(token - start) == strlen(kTokens[i].option) &&
-              !strncmp(start, kTokens[i].option, strlen(kTokens[i].option))) {
-            if (kTokens[i].flag != 0) {
-              keep_metadata |= kTokens[i].flag;
-            } else {
-              keep_metadata = 0;
-            }
-            break;
-          }
-        }
-        if (i == kNumTokens) {
-          fprintf(stderr, "Error! Unknown metadata type '%.*s'\n",
-                  (int)(token - start), start);
-          HelpLong();
-          return -1;
-        }
-        start = token + 1;
-      }
-#ifdef HAVE_WINCODEC_H
-      if (keep_metadata != 0 && keep_metadata != METADATA_ICC) {
-        // TODO(jzern): remove when -metadata is supported on all platforms.
-        fprintf(stderr, "Warning: only ICC profile extraction is currently"
-                        " supported on this platform!\n");
-      }
-#endif
-    } else if (!strcmp(argv[c], "-v")) {
+    } else if (!strcmp(argv[c], "-v") {
       verbose = 1;
     } else if (!strcmp(argv[c], "--")) {
       if (c < argc - 1) in_file = argv[++c];
@@ -923,7 +873,7 @@ int main(int argc, const char *argv[]) {
 
   // Check for unsupported command line options for lossless mode and log
   // warning for such options.
-  if (!quiet && config.lossless == 1) {
+  if (config.lossless == 1) {
     if (config.target_size > 0 || config.target_PSNR > 0) {
       fprintf(stderr, "Encoding for specified size or PSNR is not supported"
                       " for lossless encoding. Ignoring such option(s)!\n");
@@ -953,12 +903,11 @@ int main(int argc, const char *argv[]) {
   if (verbose) {
     StopwatchReset(&stop_watch);
   }
-  if (!ReadPicture(in_file, &picture, keep_alpha,
-                   (keep_metadata == 0) ? NULL : &metadata)) {
+  if (!ReadPicture(in_file, &picture, keep_alpha, NULL)) {
     fprintf(stderr, "Error! Cannot read input picture file '%s'\n", in_file);
     goto Error;
   }
-  picture.progress_hook = (show_progress && !quiet) ? ProgressReport : NULL;
+  picture.progress_hook = (show_progress) ? ProgressReport : NULL;
 
   if (blend_alpha) {
     WebPBlendAlpha(&picture, background_color);
@@ -977,28 +926,17 @@ int main(int argc, const char *argv[]) {
       fprintf(stderr, "Error! Cannot open output file '%s'\n", out_file);
       goto Error;
     } else {
-      if (!short_output && !quiet) {
-        fprintf(stderr, "Saving file '%s'\n", out_file);
-      }
+      fprintf(stderr, "Saving file '%s'\n", out_file);
     }
-    if (keep_metadata == 0) {
       picture.writer = MyWriter;
       picture.custom_ptr = (void*)out;
-    } else {
-      picture.writer = WebPMemoryWrite;
-      picture.custom_ptr = (void*)&memory_writer;
-    }
   } else {
     out = NULL;
-    if (!quiet && !short_output) {
-      fprintf(stderr, "No output file specified (no -o flag). Encoding will\n");
-      fprintf(stderr, "be performed, but its results discarded.\n\n");
-    }
+    fprintf(stderr, "No output file specified (no -o flag). Encoding will\n");
+    fprintf(stderr, "be performed, but its results discarded.\n\n");
   }
-  if (!quiet) {
     picture.stats = &stats;
     picture.user_data = (void*)in_file;
-  }
 
   // Crop & resize.
   if (verbose) {
@@ -1053,44 +991,12 @@ int main(int argc, const char *argv[]) {
     }
   }
 
-  if (keep_metadata != 0) {
-    if (out != NULL) {
-      if (!WriteWebPWithMetadata(out, &picture, &memory_writer,
-                                 &metadata, keep_metadata, &metadata_written)) {
-        fprintf(stderr, "Error writing WebP file with metadata!\n");
-        goto Error;
-      }
-    } else {  // output is disabled, just display the metadata stats.
-      const struct {
-        const MetadataPayload* const payload;
-        int flag;
-      } *iter, info[] = {
-        { &metadata.exif, METADATA_EXIF },
-        { &metadata.iccp, METADATA_ICC },
-        { &metadata.xmp, METADATA_XMP },
-        { NULL, 0 }
-      };
-      uint32_t unused1 = 0;
-      uint64_t unused2 = 0;
-
-      for (iter = info; iter->payload != NULL; ++iter) {
-        if (UpdateFlagsAndSize(iter->payload, !!(keep_metadata & iter->flag),
-                               0, &unused1, &unused2)) {
-          metadata_written |= iter->flag;
-        }
-      }
-    }
-  }
-
-  if (!quiet) {
-    if (!short_output || print_distortion < 0) {
       if (config.lossless) {
         PrintExtraInfoLossless(&picture, short_output, in_file);
       } else {
         PrintExtraInfoLossy(&picture, short_output, config.low_memory, in_file);
       }
-    }
-    if (!short_output && picture.extra_info_type > 0) {
+    if (picture.extra_info_type > 0) {
       PrintMapInfo(&picture);
     }
     if (print_distortion >= 0) {    // print distortion
@@ -1101,18 +1007,11 @@ int main(int argc, const char *argv[]) {
         fprintf(stderr, "Error while computing the distortion.\n");
         goto Error;
       }
-      if (!short_output) {
         fprintf(stderr, "%s: ", distortion_names[print_distortion]);
         fprintf(stderr, "B:%.2f G:%.2f R:%.2f A:%.2f  Total:%.2f\n",
                 values[0], values[1], values[2], values[3], values[4]);
-      } else {
-        fprintf(stderr, "%7d %.4f\n", picture.stats->coded_size, values[4]);
-      }
-    }
-    if (!short_output) {
-      PrintMetadataInfo(&metadata, metadata_written);
-    }
-  }
+    }  
+
   return_value = 0;
 
  Error:
