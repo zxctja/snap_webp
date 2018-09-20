@@ -840,7 +840,7 @@ int main(int argc, const char *argv[]) {
         fprintf(stderr, "Error! Could initialize configuration with preset.\n");
         goto Error;
       }
-    } else if (!strcmp(argv[c], "-v") {
+    } else if (!strcmp(argv[c], "-v")) {
       verbose = 1;
     } else if (!strcmp(argv[c], "--")) {
       if (c < argc - 1) in_file = argv[++c];
