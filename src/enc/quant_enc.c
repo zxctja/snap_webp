@@ -1101,7 +1101,7 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     rd_cur->H = VP8FixedCostsI16[mode];
     rd_cur->R = VP8GetCostLuma16(it, rd_cur);
 	
-	int64_t test_R;
+	int64_t test_R = 0;
 	int y, x;
 	for (y = 1; y < 16; ++y) {
 	  for (x = 1; x < 16; ++x) {
