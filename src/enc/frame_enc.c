@@ -827,7 +827,6 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
       ok = VP8IteratorProgress(&it, 20);
       VP8IteratorSaveBoundary(&it);
     } while (ok && VP8IteratorNext(&it));
-    if (!ok) break;
 
     size_p0 += enc->segment_hdr_.size_;
     // compute and store PSNR
