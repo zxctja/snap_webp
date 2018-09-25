@@ -808,18 +808,12 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
     do {
       VP8ModeScore info;
       VP8IteratorImport(&it, NULL);
-      //if (--cnt < 0) {
-      //  FinalizeTokenProbas(proba);
-      //  VP8CalculateLevelCosts(proba);  // refresh cost tables for rd-opt
-      //  cnt = max_count;
-      //}
       VP8Decimate(&it, &info, rd_opt);
       ok = RecordTokens(&it, &info, &enc->tokens_);
       if (!ok) {
         WebPEncodingSetError(enc->pic_, VP8_ENC_ERROR_OUT_OF_MEMORY);
         break;
       }
-      size_p0 += info.H;
       distortion += info.D;
       StoreSideInfo(&it);
       VP8StoreFilterStats(&it);
@@ -827,8 +821,7 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
       ok = VP8IteratorProgress(&it, 20);
       VP8IteratorSaveBoundary(&it);
     } while (ok && VP8IteratorNext(&it));
-
-    size_p0 += enc->segment_hdr_.size_;
+	
     // compute and store PSNR
       stats.value = GetPSNR(distortion, pixel_count);
 
@@ -837,19 +830,9 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
            num_pass_left, stats.last_value, stats.value,
            stats.last_q, stats.q, stats.dq);
 #endif
-    //if (enc->max_i4_header_bits_ > 0 && size_p0 > PARTITION0_SIZE_LIMIT) {
-    //  ++num_pass_left;
-    //  enc->max_i4_header_bits_ >>= 1;  // strengthen header bit limitation...
-    //  if (is_last_pass) {
-    //    ResetSideInfo(&it);
-    //  }
-    //  continue;                        // ...and start over
-    //}
 
   if (ok) {
-    if (!stats.do_size_search) {
-      FinalizeTokenProbas(&enc->proba_);
-    }
+    FinalizeTokenProbas(&enc->proba_);
     ok = VP8EmitTokens(&enc->tokens_, enc->parts_ + 0,
                        (const uint8_t*)proba->coeffs_, 1);
   }
