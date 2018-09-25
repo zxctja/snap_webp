@@ -708,6 +708,7 @@ int main(int argc, const char *argv[]) {
       return -1;
     }
   }
+  
   if (in_file == NULL) {
     fprintf(stderr, "No input file specified!\n");
     HelpShort();
@@ -716,32 +717,13 @@ int main(int argc, const char *argv[]) {
 
   // Check for unsupported command line options for lossless mode and log
   // warning for such options.
-  if (config.lossless == 1) {
-    if (config.target_size > 0 || config.target_PSNR > 0) {
-      fprintf(stderr, "Encoding for specified size or PSNR is not supported"
-                      " for lossless encoding. Ignoring such option(s)!\n");
-    }
-    if (config.partition_limit > 0) {
-      fprintf(stderr, "Partition limit option is not required for lossless"
-                      " encoding. Ignoring this option!\n");
-    }
-  }
-  // If a target size or PSNR was given, but somehow the -pass option was
-  // omitted, force a reasonable value.
-  if (config.target_size > 0 || config.target_PSNR > 0) {
-    if (config.pass == 1) config.pass = 6;
-  }
 
   if (!WebPValidateConfig(&config)) {
     fprintf(stderr, "Error! Invalid configuration.\n");
     goto Error;
   }
 
-  // Read the input. We need to decide if we prefer ARGB or YUVA
-  // samples, depending on the expected compression mode (this saves
-  // some conversion steps).
-  picture.use_argb = (config.lossless || config.use_sharp_yuv ||
-                      config.preprocessing > 0);
+  // Read the input. 
   if (verbose) {
     StopwatchReset(&stop_watch);
   }
@@ -773,17 +755,8 @@ int main(int argc, const char *argv[]) {
     fprintf(stderr, "No output file specified (no -o flag). Encoding will\n");
     fprintf(stderr, "be performed, but its results discarded.\n\n");
   }
-    picture.stats = &stats;
-    picture.user_data = (void*)in_file;
-
-  // Crop & resize.
-  if (verbose) {
-    StopwatchReset(&stop_watch);
-  }
-
-  if (picture.extra_info_type > 0) {
-    AllocExtraInfo(&picture);
-  }
+  picture.stats = &stats;
+  picture.user_data = (void*)in_file;
 
   // Compress.
   if (verbose) {
@@ -801,20 +774,12 @@ int main(int argc, const char *argv[]) {
   }
 
   // Write info
-      if (config.lossless) {
-        PrintExtraInfoLossless(&picture, short_output, in_file);
-      } else {
-        PrintExtraInfoLossy(&picture, short_output, config.low_memory, in_file);
-      }
-    if (picture.extra_info_type > 0) {
-      PrintMapInfo(&picture);
-    }
+  PrintExtraInfoLossy(&picture, short_output, config.low_memory, in_file);
 
   return_value = 0;
 
  Error:
   WebPMemoryWriterClear(&memory_writer);
-  free(picture.extra_info);
   WebPPictureFree(&picture);
   if (out != NULL && out != stdout) {
     fclose(out);
