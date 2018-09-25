@@ -1099,7 +1099,20 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     rd_cur->SD =
         tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
     rd_cur->H = VP8FixedCostsI16[mode];
-    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur, test_R);
+	
+	int64_t test_R;
+	int y, x;
+	for (y = 1; y < 16; ++y) {
+	  for (x = 1; x < 16; ++x) {
+	    test_R += rd_cur->y_ac_levels[y][x] * rd_cur->y_ac_levels[y][x];
+	  }
+	}
+	for (y = 1; y < 16; ++y) {
+	  test_R += rd_cur->y_dc_levels[y] * rd_cur->y_dc_levels[y];
+	}
+	fprintf(stdout, "%llu:%llu\n", rd_cur->R, test_R);
+	
     if (mode > 0 &&
         IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
       // penalty to avoid flat area to be mispredicted by complex mode
