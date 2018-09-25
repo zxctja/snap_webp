@@ -1101,6 +1101,12 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     rd_cur->H = VP8FixedCostsI16[mode];
     rd_cur->R = VP8GetCostLuma16(it, rd_cur);
 	
+    if (mode > 0 &&
+        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
+      // penalty to avoid flat area to be mispredicted by complex mode
+      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
+    }
+	
 	int64_t test_R = 0;
 	int y, x;
 	for (y = 1; y < 16; ++y) {
@@ -1111,13 +1117,8 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
 	for (y = 1; y < 16; ++y) {
 	  test_R += rd_cur->y_dc_levels[y] * rd_cur->y_dc_levels[y];
 	}
+	//rd_cur->R = test_R << 10;
 	fprintf(stdout, "%llu:%llu\n", rd_cur->R, test_R);
-	
-    if (mode > 0 &&
-        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
-      // penalty to avoid flat area to be mispredicted by complex mode
-      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
-    }
 
     // Since we always examine Intra16 first, we can overwrite *rd directly.
     SetRDScore(lambda, rd_cur);
