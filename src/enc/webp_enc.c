@@ -349,29 +349,7 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
 
   if (pic->stats != NULL) memset(pic->stats, 0, sizeof(*pic->stats));
 
-  if (!config->lossless) {
     VP8Encoder* enc = NULL;
-
-    if (pic->use_argb || pic->y == NULL || pic->u == NULL || pic->v == NULL) {
-      // Make sure we have YUVA samples.
-      if (config->use_sharp_yuv || (config->preprocessing & 4)) {
-        if (!WebPPictureSharpARGBToYUVA(pic)) {
-          return 0;
-        }
-      } else {
-        float dithering = 0.f;
-        if (config->preprocessing & 2) {
-          const float x = config->quality / 100.f;
-          const float x2 = x * x;
-          // slowly decreasing from max dithering at low quality (q->0)
-          // to 0.5 dithering amplitude at high quality (q->100)
-          dithering = 1.0f + (0.5f - 1.0f) * x2 * x2;
-        }
-        if (!WebPPictureARGBToYUVADithered(pic, WEBP_YUV420, dithering)) {
-          return 0;
-        }
-      }  
-    }
 
     if (!config->exact) {
       WebPCleanupTransparentArea(pic);
@@ -403,19 +381,6 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
 
 //	clock_gettime(CLOCK_REALTIME, &time_end);
 //	fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	
-  } else {
-    // Make sure we have ARGB samples.
-    if (pic->argb == NULL && !WebPPictureYUVAToARGB(pic)) {
-      return 0;
-    }
-
-    if (!config->exact) {
-      WebPCleanupTransparentAreaLossless(pic);
-    }
-
-    ok = VP8LEncodeImage(config, pic);  // Sets pic->error in case of problem.
-  }
 
   return ok;
 }
