@@ -690,7 +690,7 @@ int main(int argc, const char *argv[]) {
       printf("%d.%d.%d\n",
              (version >> 16) & 0xff, (version >> 8) & 0xff, version & 0xff);
       return 0;
-    } else if (!strcmp(argv[c], "-v") {
+    } else if (!strcmp(argv[c], "-v")) {
       verbose = 1;
     } else if (!strcmp(argv[c], "--")) {
       if (c < argc - 1) in_file = argv[++c];
