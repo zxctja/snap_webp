@@ -818,7 +818,6 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
       StoreSideInfo(&it);
       VP8StoreFilterStats(&it);
       VP8IteratorExport(&it);
-      ok = VP8IteratorProgress(&it, 20);
       VP8IteratorSaveBoundary(&it);
     } while (ok && VP8IteratorNext(&it));
 	

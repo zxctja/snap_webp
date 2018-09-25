@@ -1081,18 +1081,7 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     rd_cur->mode_i16 = mode;
 
     // Reconstruct
-
-	//struct timespec time_start={0, 0},time_end={0, 0};
-	//clock_gettime(CLOCK_REALTIME, &time_start);
-
     rd_cur->nz = ReconstructIntra16(it, rd_cur, tmp_dst, mode);
-
-	//clock_gettime(CLOCK_REALTIME, &time_end);
-    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	
-
-	//struct timespec time_start={0, 0},time_end={0, 0};
-	//clock_gettime(CLOCK_REALTIME, &time_start);
 
     // Measure RD-score
     rd_cur->D = VP8SSE16x16(src, tmp_dst);
@@ -1123,9 +1112,6 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     // Since we always examine Intra16 first, we can overwrite *rd directly.
     SetRDScore(lambda, rd_cur);
 
-	//clock_gettime(CLOCK_REALTIME, &time_end);
-    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	
     if (mode == 0 || rd_cur->score < rd_best->score) {
       SwapModeScore(&rd_cur, &rd_best);
       SwapOut(it);
@@ -1186,15 +1172,9 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
     uint8_t* tmp_dst = it->yuv_p_ + I4TMP;    // scratch buffer.
 
     InitScore(&rd_i4);
-	
-	//struct timespec time_start={0, 0},time_end={0, 0};
-    //clock_gettime(CLOCK_REALTIME, &time_start);
-	
+
     VP8MakeIntra4Preds(it);
 
-	//clock_gettime(CLOCK_REALTIME, &time_end);
-    //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	
     for (mode = 0; mode < NUM_BMODES; ++mode) {
       VP8ModeScore rd_tmp;
       int16_t tmp_levels[16];
@@ -1202,8 +1182,6 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
       // Reconstruct
       rd_tmp.nz =
           ReconstructIntra4(it, tmp_levels, src, tmp_dst, mode) << it->i4_;
-
-	  //clock_gettime(CLOCK_REALTIME, &time_start);
 
       // Compute RD-score
       rd_tmp.D = VP8SSE4x4(src, tmp_dst);
@@ -1219,7 +1197,6 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
 	  }
 	  rd_tmp.R = test_R << 10;
 
-
       /*// Add flatness penalty
       if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
         rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
@@ -1234,9 +1211,6 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
       // finish computing score
       rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);*/
       SetRDScore(lambda, &rd_tmp);
-
-	  //clock_gettime(CLOCK_REALTIME, &time_end);
-	  //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
       if (best_mode < 0 || rd_tmp.score < rd_i4.score) {
         CopyScore(&rd_i4, &rd_tmp);
@@ -1292,9 +1266,6 @@ static void PickBestUV(VP8EncIterator* const it, VP8ModeScore* const rd) {
     // Reconstruct
     rd_uv.nz = ReconstructUV(it, &rd_uv, tmp_dst, mode);
 
-	//struct timespec time_start={0, 0},time_end={0, 0};
-	//clock_gettime(CLOCK_REALTIME, &time_start);
-
     // Compute RD-score
     rd_uv.D  = VP8SSE16x8(src, tmp_dst);
     rd_uv.SD = 0;    // not calling TDisto here: it tends to flatten areas.
@@ -1316,10 +1287,7 @@ static void PickBestUV(VP8EncIterator* const it, VP8ModeScore* const rd) {
     }*/
 
     SetRDScore(lambda, &rd_uv);
-	
-	//clock_gettime(CLOCK_REALTIME, &time_end);
-	//fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-	   
+
     if (mode == 0 || rd_uv.score < rd_best.score) {
       CopyScore(&rd_best, &rd_uv);
       rd->mode_uv = mode;
@@ -1485,44 +1453,15 @@ int VP8Decimate(VP8EncIterator* const it, VP8ModeScore* const rd,
 
   // We can perform predictions for Luma16x16 and Chroma8x8 already.
   // Luma4x4 predictions needs to be done as-we-go.
-  
-  //struct timespec time_start={0, 0},time_end={0, 0};
-  //clock_gettime(CLOCK_REALTIME, &time_start);
 
   VP8MakeLuma16Preds(it);
-  
-  //clock_gettime(CLOCK_REALTIME, &time_end);
-  //fprintf(stdout, "16:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));  
-  
-  //clock_gettime(CLOCK_REALTIME, &time_start);
-  
-  VP8MakeChroma8Preds(it);
-  
-  //clock_gettime(CLOCK_REALTIME, &time_end);
-  //fprintf(stdout, "8:%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
 
-  if (rd_opt > RD_OPT_NONE) {
-    it->do_trellis_ = (rd_opt >= RD_OPT_TRELLIS_ALL);
-    PickBestIntra16(it, rd);
-    if (method >= 2) {
-      PickBestIntra4(it, rd);
-    }
-    PickBestUV(it, rd);
-    if (rd_opt == RD_OPT_TRELLIS) {   // finish off with trellis-optim now
-      it->do_trellis_ = 1;
-      SimpleQuantize(it, rd);
-    }
-  } else {
-    // At this point we have heuristically decided intra16 / intra4.
-    // For method >= 2, pick the best intra4/intra16 based on SSE (~tad slower).
-    // For method <= 1, we don't re-examine the decision but just go ahead with
-    // quantization/reconstruction.
-    RefineUsingDistortion(it, (method >= 2), (method >= 1), rd);
-  }
-  
-  //clock_gettime(CLOCK_REALTIME, &time_end);
-  //fprintf(stdout, "%lluns\n", (long long)((double)((time_end.tv_sec-time_start.tv_sec)*1000000000+(time_end.tv_nsec-time_start.tv_nsec))));
-  
+  VP8MakeChroma8Preds(it);
+
+  PickBestIntra16(it, rd);
+  PickBestIntra4(it, rd);
+  PickBestUV(it, rd);
+
   is_skipped = (rd->nz == 0);
   VP8SetSkip(it, is_skipped);
   return is_skipped;
