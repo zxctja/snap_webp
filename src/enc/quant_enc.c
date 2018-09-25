@@ -1099,7 +1099,7 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     rd_cur->SD =
         tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
     rd_cur->H = VP8FixedCostsI16[mode];
-    rd_cur->R = VP8GetCostLuma16(it, rd_cur, test_R);
+    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
 	
 	int64_t test_R;
 	int y, x;
