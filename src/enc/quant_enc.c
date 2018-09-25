@@ -1217,7 +1217,7 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
 	  for (y = 0; y < 16; ++y) {
 		test_R += tmp_levels[y] * tmp_levels[y];
 	  }
-	  rd_tmp->R = test_R << 10;
+	  rd_tmp.R = test_R << 10;
 
 
       /*// Add flatness penalty
@@ -1307,7 +1307,7 @@ static void PickBestUV(VP8EncIterator* const it, VP8ModeScore* const rd) {
 	    test_R += rd_uv.uv_levels[y][x] * rd_uv.uv_levels[y][x];
 	  }
 	}
-	rd_uv->R = test_R << 10;
+	rd_uv.R = test_R << 10;
 
 	
     /*rd_uv.R  = VP8GetCostUV(it, &rd_uv);
