@@ -1099,13 +1099,13 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
     rd_cur->SD =
         tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
     rd_cur->H = VP8FixedCostsI16[mode];
-    rd_cur->R = VP8GetCostLuma16(it, rd_cur);
+    /*rd_cur->R = VP8GetCostLuma16(it, rd_cur);
 	
     if (mode > 0 &&
         IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
       // penalty to avoid flat area to be mispredicted by complex mode
       rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
-    }
+    }*/
 	
 	int64_t test_R = 0;
 	int y, x;
@@ -1114,11 +1114,11 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
 	    test_R += rd_cur->y_ac_levels[y][x] * rd_cur->y_ac_levels[y][x];
 	  }
 	}
-	for (y = 1; y < 16; ++y) {
+	for (y = 0; y < 16; ++y) {
 	  test_R += rd_cur->y_dc_levels[y] * rd_cur->y_dc_levels[y];
 	}
-	//rd_cur->R = test_R << 10;
-	fprintf(stdout, "%llu:%llu\n", rd_cur->R, test_R);
+	rd_cur->R = test_R << 10;
+	//fprintf(stdout, "%llu:%llu\n", rd_cur->R, test_R);
 
     // Since we always examine Intra16 first, we can overwrite *rd directly.
     SetRDScore(lambda, rd_cur);
@@ -1212,7 +1212,15 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
                   : 0;
       rd_tmp.H = mode_costs[mode];
 
-      // Add flatness penalty
+	  int64_t test_R = 0;
+	  int y;
+	  for (y = 0; y < 16; ++y) {
+		test_R += tmp_levels[y] * tmp_levels[y];
+	  }
+	  rd_tmp->R = test_R << 10;
+
+
+      /*// Add flatness penalty
       if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
         rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
       } else {
@@ -1224,7 +1232,7 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
       if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
 
       // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);
+      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);*/
       SetRDScore(lambda, &rd_tmp);
 
 	  //clock_gettime(CLOCK_REALTIME, &time_end);
@@ -1291,10 +1299,21 @@ static void PickBestUV(VP8EncIterator* const it, VP8ModeScore* const rd) {
     rd_uv.D  = VP8SSE16x8(src, tmp_dst);
     rd_uv.SD = 0;    // not calling TDisto here: it tends to flatten areas.
     rd_uv.H  = VP8FixedCostsUV[mode];
-    rd_uv.R  = VP8GetCostUV(it, &rd_uv);
+
+	int64_t test_R = 0;
+	int x, y;
+	for (y = 0; y < 8; ++y) {
+	  for (x = 0; x < 16; ++x) {
+	    test_R += rd_uv.uv_levels[y][x] * rd_uv.uv_levels[y][x];
+	  }
+	}
+	rd_uv->R = test_R << 10;
+
+	
+    /*rd_uv.R  = VP8GetCostUV(it, &rd_uv);
     if (mode > 0 && IsFlat(rd_uv.uv_levels[0], kNumBlocks, FLATNESS_LIMIT_UV)) {
       rd_uv.R += FLATNESS_PENALTY * kNumBlocks;
-    }
+    }*/
 
     SetRDScore(lambda, &rd_uv);
 	
