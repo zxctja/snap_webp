@@ -1065,7 +1065,8 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
     int mode;
     int best_mode = -1;
     const uint8_t* const src = src0 + VP8Scan[it->i4_];
-    const uint16_t* const mode_costs = GetCostModeI4(it, rd->modes_i4);
+    //const uint16_t* const mode_costs = GetCostModeI4(it, rd->modes_i4);
+    const uint16_t* const mode_costs = VP8FixedCostsI4[0][0];
     uint8_t* best_block = best_blocks + VP8Scan[it->i4_];
     uint8_t* tmp_dst = it->yuv_p_ + I4TMP;    // scratch buffer.
 
