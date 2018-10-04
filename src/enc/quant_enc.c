@@ -1124,10 +1124,10 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
     if (rd_best.score >= rd->score) {
       return 0;
     }
-    total_header_bits += (int)rd_i4.H;   // <- equal to mode_costs[best_mode];
-    if (total_header_bits > enc->max_i4_header_bits_) {
-      return 0;
-    }
+    //total_header_bits += (int)rd_i4.H;   // <- equal to mode_costs[best_mode];
+    //if (total_header_bits > enc->max_i4_header_bits_) {
+    //  return 0;
+    //}
     // Copy selected samples if not in the right place already.
     if (best_block != best_blocks + VP8Scan[it->i4_]) {
       VP8Copy4x4(best_block, best_blocks + VP8Scan[it->i4_]);
