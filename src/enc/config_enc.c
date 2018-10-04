@@ -37,7 +37,7 @@ int WebPConfigInitInternal(WebPConfig* config,
   config->filter_sharpness = 0;
   config->filter_type = 1;        // default: strong (so U/V is filtered too)
   config->partitions = 0;
-  config->segments = 4;
+  config->segments = 1;
   config->pass = 1;
   config->show_compressed = 0;
   config->preprocessing = 0;
