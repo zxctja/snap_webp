@@ -795,27 +795,98 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
   assert(rd_opt >= RD_OPT_BASIC);   // otherwise, token-buffer won't be useful
   assert(num_pass_left > 0);
 
-
+	struct DATA {
+		uint8_t Yin[16*16];
+		uint8_t UVin[8*16];
+		uint8_t Yout16[16*16];
+		uint8_t Yout4[16*16];
+		uint8_t UVout[8*16];
+		VP8SegmentInfo* const dqm;
+		uint8_t left_y[16];
+		uint8_t top_y[20];
+		uint8_t top_left_y = 129;
+		uint8_t left_u[8];
+		uint8_t top_u[8];
+		uint8_t top_left_u = 129;
+		uint8_t left_v[8];
+		uint8_t top_v[8];
+		uint8_t top_left_v = 129;
+		int mbtype = 0;
+		int* is_skipped;
+		int x = 0;
+		int y = 0;
+		}
+	
+	struct DATA data_it;
+	uint8_t * mem_in;
+	mem_in = (uint8_t*)WebPSafeMalloc(384 * enc->mb_w_ * enc->mb_h_, sizeof(*mem_in));
+	int x, y, i;
+	const WebPPicture* const pic = enc->pic_;
+	
+	for(y = 0; y < enc->mb_h_; y++){
+		for(x = 0; x < enc->mb_w_; x++){
+			const int w = MinSize(pic->width - x * 16, 16);
+			const int h = MinSize(pic->height - y * 16, 16);
+			const int uv_w = (w + 1) >> 1;
+			const int uv_h = (h + 1) >> 1;
+			for(i = 0; i < h; i++){
+				memcpy(mem_in + (y * enc->mb_w_ + x) * 384 + i * 16, pic->y + (y * pic->y_stride  + x) * 16 + i * pic->y_stride, w);
+				if(w < 16){
+					memset(mem_in + (y * enc->mb_w_ + x) * 384 + i * 16 + w, (mem_in + (y * enc->mb_w_ + x) * 384 + i * 16)[w - 1], 16 - w);
+				}
+			}
+			for (i = h; i < 16; ++i) {
+				memcpy(mem_in + (y * enc->mb_w_ + x) * 384 + i * 16, mem_in + (y * enc->mb_w_ + x) * 384 + i * 16 - 16, 16);
+			}
+			for(i = 0; i < uv_h; i++){
+				memcpy(mem_in + 256 + (y * enc->mb_w_ + x) * 384 + i * 16, pic->u + (y * pic->uv_stride + x) * 16 + i * pic->uv_stride, uv_w);
+				memcpy(mem_in + 264 + (y * enc->mb_w_ + x) * 384 + i * 16, pic->v + (y * pic->uv_stride + x) * 16 + i * pic->uv_stride, uv_w);
+				if(uv_w < 8){
+					memset(mem_in + 256 + (y * enc->mb_w_ + x) * 384 + i * 16 + uv_w, (mem_in + 256 + (y * enc->mb_w_ + x) * 384 + i * 16)[uv_w - 1], 8 - uv_w);
+					memset(mem_in + 264 + (y * enc->mb_w_ + x) * 384 + i * 16 + uv_w, (mem_in + 264 + (y * enc->mb_w_ + x) * 384 + i * 16)[uv_w - 1], 8 - uv_w);
+				}
+			}
+			for (i = uv_h; i < 8; ++i) {
+				memcpy(mem_in + 256 + (y * enc->mb_w_ + x) * 384 + i * 16, mem_in + 256 + (y * enc->mb_w_ + x) * 384 + i * 16 - 16, 8);
+				memcpy(mem_in + 264 + (y * enc->mb_w_ + x) * 384 + i * 16, mem_in + 264 + (y * enc->mb_w_ + x) * 384 + i * 16 - 16, 8);
+			}
+		}
+	}
 
     uint64_t size_p0 = 0;
     uint64_t distortion = 0;
     int cnt = max_count;
     VP8IteratorInit(enc, &it);
+	
+	memset(data_it.top_y, 127, 20);
+	memset(data_it.top_u, 127, 8);
+	memset(data_it.top_v, 127, 8);
+	memset(data_it.left_y, 129, 16);
+	memset(data_it.left_u, 129, 8);
+	memset(data_it.left_v, 129, 8);
+	data_it.dqm = &enc->dqm_[0]
+	
     SetLoopParams(enc, stats.q);
     ResetTokenStats(enc);
     VP8InitFilter(&it);
     VP8TBufferClear(&enc->tokens_);
     do {
       VP8ModeScore info;
-      VP8IteratorImport(&it, NULL);
-      VP8Decimate(&it, &info, rd_opt);
+	  memcpy(&data_it, mem_in + (data_it.y * enc->mb_w_ + data_it.x) * 384, 384);
+	  
+	  VP8Decimate(data_it.Yin, data_it.Yout16, data_it.Yout4,
+		data_it.dqm, data_it.UVin, data_it.UVout, &data_it.is_skipped,
+		data_it.left_y, data_it.top_y, data_it.top_left_y, &data_it.mbtype,
+		data_it.left_u, data_it.top_u, data_it.top_left_u, data_it.left_v,
+		data_it.top_v, data_it.top_left_v, data_it.x, data_it.y, &info);
+	  
       ok = RecordTokens(&it, &info, &enc->tokens_);
       if (!ok) {
         WebPEncodingSetError(enc->pic_, VP8_ENC_ERROR_OUT_OF_MEMORY);
         break;
       }
       distortion += info.D;
-      StoreSideInfo(&it);
+      //StoreSideInfo(&it);
       VP8StoreFilterStats(&it);
       VP8IteratorExport(&it);
       VP8IteratorSaveBoundary(&it);

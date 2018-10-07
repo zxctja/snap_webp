@@ -752,62 +752,84 @@ static int TrellisQuantizeBlock(const VP8Encoder* const enc,
 // all at once. Output is the reconstructed block in *yuv_out, and the
 // quantized levels in *levels.
 
-static int ReconstructIntra16(VP8EncIterator* const it,
-                              VP8ModeScore* const rd,
-                              uint8_t* const yuv_out,
-                              int mode) {
-  const VP8Encoder* const enc = it->enc_;
-  const uint8_t* const ref = it->yuv_p_ + VP8I16ModeOffsets[mode];
-  const uint8_t* const src = it->yuv_in_ + Y_OFF_ENC;
-  const VP8SegmentInfo* const dqm = &enc->dqm_[it->mb_->segment_];
+static int ReconstructIntra16(
+		const uint8_t YPred[16*16], const uint8_t Ysrc[16*16], uint8_t Yout[16*16],
+		int16_t y_ac_levels[16][16], int16_t y_dc_levels[16], VP8Matrix y1, VP8Matrix y2) {
+
   int nz = 0;
   int n;
-  int16_t tmp[16][16], dc_tmp[16];
+  int16_t tmp[16][16], dc_tmp[16], tmp_dc[16];
+  uint8_t tmp_src[16][16], tmp_pred[16][16], tmp_out[16][16];
 
-  for (n = 0; n < 16; n += 2) {
-    VP8FTransform2(src + VP8Scan[n], ref + VP8Scan[n], tmp[n]);
+  const uint16_t VP8Scan[16] = {  // Luma
+    0 +  0 * 16,  4 +  0 * 16, 8 +  0 * 16, 12 +  0 * 16,
+    0 +  4 * 16,  4 +  4 * 16, 8 +  4 * 16, 12 +  4 * 16,
+    0 +  8 * 16,  4 +  8 * 16, 8 +  8 * 16, 12 +  8 * 16,
+    0 + 12 * 16,  4 + 12 * 16, 8 + 12 * 16, 12 + 12 * 16,
+  };
+
+  int i,j;
+  for(n = 0; n < 16; n++){
+	  for(j = 0; j < 4; j++){
+		  for(i = 0; i < 4; i++){
+			  tmp_src[n][j * 4 + i] = Ysrc[VP8Scan[n] + j * 16 + i];
+			  tmp_pred[n][j * 4 + i] = YPred[VP8Scan[n] + j * 16 + i];
+		  }
+	  }
   }
 
-  VP8FTransformWHT(tmp[0], dc_tmp);
+  for (n = 0; n < 16; n++) {
+	  FTransform_C(tmp_src[n], tmp_pred[n], tmp[n]);
+  }
 
-  nz |= VP8EncQuantizeBlockWHT(dc_tmp, rd->y_dc_levels, &dqm->y2_) << 24;
+  for(n = 0; n < 16; n++){
+	  tmp_dc[n] = tmp[n][0];
+	  tmp[n][0] = 0;
+  }
 
-  for (n = 0; n < 16; n += 2) {
+  FTransformWHT_C(tmp_dc, dc_tmp);
+
+  nz |= QuantizeBlock_C(dc_tmp, y_dc_levels, &y2) << 24;
+
+  for (n = 0; n < 16; n++) {
     // Zero-out the first coeff, so that: a) nz is correct below, and
     // b) finding 'last' non-zero coeffs in SetResidualCoeffs() is simplified.
-    tmp[n][0] = tmp[n + 1][0] = 0;
-    nz |= VP8EncQuantize2Blocks(tmp[n], rd->y_ac_levels[n], &dqm->y1_) << n;
-    assert(rd->y_ac_levels[n + 0][0] == 0);
-    assert(rd->y_ac_levels[n + 1][0] == 0);
+    nz |= QuantizeBlock_C(tmp[n],y_ac_levels[n], &y1) << n;
+
   }
 
+  TransformWHT_C(dc_tmp, tmp_dc);
 
-  // Transform back
-  VP8TransformWHT(dc_tmp, tmp[0]);
-  
-  for (n = 0; n < 16; n += 2) {
-    VP8ITransform(ref + VP8Scan[n], tmp[n], yuv_out + VP8Scan[n], 1);
+  for(n = 0; n < 16; n++){
+	  tmp[n][0] = tmp_dc[n];
+  }
+
+  for (n = 0; n < 16; n++) {
+	  ITransformOne(tmp_pred[n], tmp[n], tmp_out[n]);
+  }
+
+  for(n = 0; n < 16; n++){
+	  for(j = 0; j < 4; j++){
+		  for(i = 0; i < 4; i++){
+			  Yout[VP8Scan[n] + j * 16 + i] = tmp_out[n][j * 4 + i];
+		  }
+	  }
   }
 
   return nz;
 }
 
-static int ReconstructIntra4(VP8EncIterator* const it,
-                             int16_t levels[16],
-                             const uint8_t* const src,
-                             uint8_t* const yuv_out,
-                             int mode) {
-  const VP8Encoder* const enc = it->enc_;
-  const uint8_t* const ref = it->yuv_p_ + VP8I4ModeOffsets[mode];
-  const VP8SegmentInfo* const dqm = &enc->dqm_[it->mb_->segment_];
+static int ReconstructIntra4(int16_t levels[16], const uint8_t y_p[16],
+		const uint8_t const y_src[16], uint8_t y_out[16], VP8Matrix y1) {
   int nz = 0;
   int16_t tmp[16];
+//#pragma HLS ARRAY_PARTITION variable=tmp complete dim=1
 
-  VP8FTransform(src, ref, tmp);
+  FTransform_C(y_src, y_p, tmp);
 
-  nz = VP8EncQuantizeBlock(tmp, levels, &dqm->y1_);
-  
-  VP8ITransform(ref, tmp, yuv_out, 0);
+  nz = QuantizeBlock_C(tmp, levels, &y1);
+
+  ITransformOne(y_p, tmp, y_out);
 
   return nz;
 }
@@ -833,14 +855,16 @@ static int QuantizeSingle(int16_t* const v, const VP8Matrix* const mtx) {
     const int err = (V - qV);
     *v = sign ? -qV : qV;
     return (sign ? -err : err) >> DSCALE;
-  }
+  } else {
   *v = 0;
   return (sign ? -V : V) >> DSCALE;
+  }
 }
 
-static void CorrectDCValues(const VP8EncIterator* const it,
+
+static void CorrectDCValues(DError top_derr[1024], DError left_derr, int x,
                             const VP8Matrix* const mtx,
-                            int16_t tmp[][16], VP8ModeScore* const rd) {
+                            int16_t tmp[][16], int8_t derr[2][3]) {
   //         | top[0] | top[1]
   // --------+--------+---------
   // left[0] | tmp[0]   tmp[1]  <->   err0 err1
@@ -850,8 +874,9 @@ static void CorrectDCValues(const VP8EncIterator* const it,
   // as top[]/left[] on the next block.
   int ch;
   for (ch = 0; ch <= 1; ++ch) {
-    const int8_t* const top = it->top_derr_[it->x_][ch];
-    const int8_t* const left = it->left_derr_[ch];
+//#pragma HLS unroll
+    const int8_t* const top = top_derr[x][ch];
+    const int8_t* const left = left_derr[ch];
     int16_t (* const c)[16] = &tmp[ch * 4];
     int err0, err1, err2, err3;
     c[0][0] += (C1 * top[0] + C2 * left[0]) >> (DSHIFT - DSCALE);
@@ -864,25 +889,26 @@ static void CorrectDCValues(const VP8EncIterator* const it,
     err3 = QuantizeSingle(&c[3][0], mtx);
     // error 'err' is bounded by mtx->q_[0] which is 132 at max. Hence
     // err >> DSCALE will fit in an int8_t type if DSCALE>=1.
-    assert(abs(err1) <= 127 && abs(err2) <= 127 && abs(err3) <= 127);
-    rd->derr[ch][0] = (int8_t)err1;
-    rd->derr[ch][1] = (int8_t)err2;
-    rd->derr[ch][2] = (int8_t)err3;
+    derr[ch][0] = (int8_t)err1;
+    derr[ch][1] = (int8_t)err2;
+    derr[ch][2] = (int8_t)err3;
   }
 }
 
-static void StoreDiffusionErrors(VP8EncIterator* const it,
+
+static void StoreDiffusionErrors(DError top_derr[1024], DError left_derr, int x,
                                  const VP8ModeScore* const rd) {
   int ch;
   for (ch = 0; ch <= 1; ++ch) {
-    int8_t* const top = it->top_derr_[it->x_][ch];
-    int8_t* const left = it->left_derr_[ch];
+    int8_t* const top = top_derr[x][ch];
+    int8_t* const left = left_derr[ch];
     left[0] = rd->derr[ch][0];            // restore err1
     left[1] = 3 * rd->derr[ch][2] >> 2;   //     ... 3/4th of err3
     top[0]  = rd->derr[ch][1];            //     ... err2
     top[1]  = rd->derr[ch][2] - left[1];  //     ... 1/4th of err3.
   }
 }
+
 
 #undef C1
 #undef C2
@@ -891,28 +917,51 @@ static void StoreDiffusionErrors(VP8EncIterator* const it,
 
 //------------------------------------------------------------------------------
 
-static int ReconstructUV(VP8EncIterator* const it, VP8ModeScore* const rd,
-                         uint8_t* const yuv_out, int mode) {
-  const VP8Encoder* const enc = it->enc_;
-  const uint8_t* const ref = it->yuv_p_ + VP8UVModeOffsets[mode];
-  const uint8_t* const src = it->yuv_in_ + U_OFF_ENC;
-  const VP8SegmentInfo* const dqm = &enc->dqm_[it->mb_->segment_];
+static int ReconstructUV(int16_t uv_levels[8][16],const uint8_t uv_p[8*16],
+		const uint8_t uv_src[8*16], uint8_t uv_out[8*16], VP8Matrix uv,
+		DError top_derr[1024], DError left_derr, int x, int8_t derr[2][3]) {
+
   int nz = 0;
   int n;
   int16_t tmp[8][16];
+  uint8_t tmp_src[8][16], tmp_p[8][16], tmp_out[8][16];
 
-  for (n = 0; n < 8; n += 2) {
-    VP8FTransform2(src + VP8ScanUV[n], ref + VP8ScanUV[n], tmp[n]);
+  static const uint16_t VP8ScanUV[4 + 4] = {
+    0 + 0 * 16,   4 + 0 * 16, 0 + 4 * 16,  4 + 4 * 16,    // U
+    8 + 0 * 16,  12 + 0 * 16, 8 + 4 * 16, 12 + 4 * 16     // V
+  };
+
+  int i,j;
+  for(n = 0; n < 8; n++){
+	  for(j = 0; j < 4; j++){
+		  for(i = 0; i < 4; i++){
+			  tmp_src[n][j * 4 + i] = uv_src[VP8ScanUV[n] + j * 16 + i];
+			  tmp_p[n][j * 4 + i] = uv_p[VP8ScanUV[n] + j * 16 + i];
+		  }
+	  }
   }
 
-  if (it->top_derr_ != NULL) CorrectDCValues(it, &dqm->uv_, tmp, rd);
-
-  for (n = 0; n < 8; n += 2) {
-    nz |= VP8EncQuantize2Blocks(tmp[n], rd->uv_levels[n], &dqm->uv_) << n;
+  for (n = 0; n < 8; n++) {
+	  FTransform_C(tmp_src[n], tmp_p[n], tmp[n]);
   }
 
-  for (n = 0; n < 8; n += 2) {
-    VP8ITransform(ref + VP8ScanUV[n], tmp[n], yuv_out + VP8ScanUV[n], 1);
+  CorrectDCValues(top_derr, left_derr, x, &uv, tmp, derr);
+
+
+  for (n = 0; n < 8; n++) {
+    nz |= QuantizeBlock_C(tmp[n], uv_levels[n], &uv) << n;
+  }
+
+  for (n = 0; n < 8; n++) {
+	  ITransformOne(tmp_p[n], tmp[n], tmp_out[n]);
+  }
+
+  for(n = 0; n < 8; n++){
+	  for(j = 0; j < 4; j++){
+		  for(i = 0; i < 4; i++){
+			  uv_out[VP8ScanUV[n] + j * 16 + i] = tmp_out[n][j * 4 + i];
+		  }
+	  }
   }
 
   return (nz << 16);
@@ -932,6 +981,7 @@ static void StoreMaxDelta(VP8SegmentInfo* const dqm, const int16_t DCs[16]) {
   max_v = (v2 > max_v) ? v2 : max_v;
   if (max_v > dqm->max_edge_) dqm->max_edge_ = max_v;
 }
+
 
 static void SwapModeScore(VP8ModeScore** a, VP8ModeScore** b) {
   VP8ModeScore* const tmp = *a;
@@ -962,38 +1012,33 @@ static score_t IsFlat(const int16_t* levels, int num_blocks, score_t thresh) {
   return 1;
 }
 
-static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
+static void PickBestIntra16(uint8_t Yin[16*16], uint8_t Yout[16*16], uint8_t YPred[4][16*16],
+		VP8ModeScore* rd, VP8SegmentInfo* const dqm) {
   const int kNumBlocks = 16;
-  VP8SegmentInfo* const dqm = &it->enc_->dqm_[it->mb_->segment_];
+  //VP8SegmentInfo* const dqm = &it->enc_->dqm_[it->mb_->segment_];
   const int lambda = dqm->lambda_i16_;
   const int tlambda = dqm->tlambda_;
-  const uint8_t* const src = it->yuv_in_ + Y_OFF_ENC;
+  const uint8_t* const src = Yin;
   VP8ModeScore rd_tmp;
   VP8ModeScore* rd_cur = &rd_tmp;
   VP8ModeScore* rd_best = rd;
   int mode;
+  uint8_t Yout_tmp[16*16];
 
-  rd->mode_i16 = -1;
+  //rd->mode_i16 = -1;
   for (mode = 0; mode < NUM_PRED_MODES; ++mode) {
-    uint8_t* const tmp_dst = it->yuv_out2_ + Y_OFF_ENC;  // scratch buffer
+    uint8_t* const tmp_dst = Yout_tmp;  // scratch buffer
     rd_cur->mode_i16 = mode;
 
     // Reconstruct
-    rd_cur->nz = ReconstructIntra16(it, rd_cur, tmp_dst, mode);
+    rd_cur->nz = ReconstructIntra16(YPred[mode], src, tmp_dst, rd_cur->y_ac_levels,
+    		rd_cur->y_dc_levels, dqm->y1_, dqm->y2_);
 
     // Measure RD-score
-    rd_cur->D = VP8SSE16x16(src, tmp_dst);
-    rd_cur->SD =
-        tlambda ? MULT_8B(tlambda, VP8TDisto16x16(src, tmp_dst, kWeightY)) : 0;
+    rd_cur->D = SSE16x16_C(src, tmp_dst);
+    rd_cur->SD = MULT_8B(tlambda, Disto16x16_C(src, tmp_dst, kWeightY));
     rd_cur->H = VP8FixedCostsI16[mode];
-    /*rd_cur->R = VP8GetCostLuma16(it, rd_cur);
-	
-    if (mode > 0 &&
-        IsFlat(rd_cur->y_ac_levels[0], kNumBlocks, FLATNESS_LIMIT_I16)) {
-      // penalty to avoid flat area to be mispredicted by complex mode
-      rd_cur->R += FLATNESS_PENALTY * kNumBlocks;
-    }*/
-	
+
 	int64_t test_R = 0;
 	int y, x;
 	for (y = 1; y < 16; ++y) {
@@ -1005,21 +1050,28 @@ static void PickBestIntra16(VP8EncIterator* const it, VP8ModeScore* rd) {
 	  test_R += rd_cur->y_dc_levels[y] * rd_cur->y_dc_levels[y];
 	}
 	rd_cur->R = test_R << 10;
-	//fprintf(stdout, "%llu:%llu\n", rd_cur->R, test_R);
 
     // Since we always examine Intra16 first, we can overwrite *rd directly.
     SetRDScore(lambda, rd_cur);
 
-    if (mode == 0 || rd_cur->score < rd_best->score) {
-      SwapModeScore(&rd_cur, &rd_best);
-      SwapOut(it);
+    if (rd_cur->score < rd_best->score) {
+      rd_best->mode_i16	= rd_cur->mode_i16;
+      CopyScore(rd_best, rd_cur);
+	  for (y = 0; y < 16; ++y) {
+		for (x = 0; x < 16; ++x) {
+		  rd_best->y_ac_levels[y][x] = rd_cur->y_ac_levels[y][x];
+		}
+	  }
+	  for (y = 0; y < 16; ++y) {
+		rd_best->y_dc_levels[y] = rd_cur->y_dc_levels[y];
+	  }
+	  for (y = 0; y < 256; ++y) {
+		Yout[y] = tmp_dst[y];
+	  }
     }
   }
-  if (rd_best != rd) {
-    memcpy(rd, rd_best, sizeof(*rd));
-  }
+
   SetRDScore(dqm->lambda_mode_, rd);   // finalize score for mode decision.
-  VP8SetIntra16Mode(it, rd->mode_i16);
 
   // we have a blocky macroblock (only DCs are non-zero) with fairly high
   // distortion, record max delta so we can later adjust the minimal filtering
@@ -1041,52 +1093,321 @@ static const uint16_t* GetCostModeI4(VP8EncIterator* const it,
   return VP8FixedCostsI4[top][left];
 }
 
-static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
-  const VP8Encoder* const enc = it->enc_;
-  const VP8SegmentInfo* const dqm = &enc->dqm_[it->mb_->segment_];
+void picki4b(int i4, uint8_t y_left[16], uint8_t y_top_left, uint8_t y_top[20],
+		uint8_t left[4], uint8_t* top_left, uint8_t top[4], uint8_t top_right[4]) {
+
+	int i;
+
+    switch(i4){
+    case 0 :
+    	*top_left = y_top_left;
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[4+i];
+		}
+		break;
+    case 1 :
+    	*top_left = y_top[3];
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[i];
+		}
+		for (i = 0; i <4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[4+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[8+i];
+		}
+		break;
+    case 2 :
+    	*top_left = y_top[7];
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[8+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[12+i];
+		}
+		break;
+    case 3 :
+    	*top_left = y_top[11];
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[12+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[16+i];
+		}
+		break;
+    case 4 :
+    	*top_left = y_top_left;
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[4+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[4+i];
+		}
+		break;
+    case 5 :
+    	*top_left = y_top[3];
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[4+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[4+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[8+i];
+		}
+		break;
+    case 6 :
+    	*top_left = y_top[7];
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[4+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[8+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[12+i];
+		}
+		break;
+    case 7 :
+    	*top_left = y_top[11];
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[4+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[12+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[16+i];
+		}
+		break;
+    case 8 :
+    	*top_left = y_top_left;
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[8+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[4+i];
+		}
+		break;
+    case 9 :
+    	*top_left = y_top[3];
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[8+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[4+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[8+i];
+		}
+		break;
+    case 10 :
+    	*top_left = y_top[7];
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[8+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[8+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[12+i];
+		}
+		break;
+    case 11 :
+    	*top_left = y_top[11];
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[8+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[12+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[16+i];
+		}
+		break;
+    case 12 :
+    	*top_left = y_top_left;
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[12+i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[i];
+		}
+		for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[4+i];
+		}
+		break;
+    case 13 :
+    	*top_left = y_top[3];
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[12+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[4+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[8+i];
+		}
+		break;
+    case 14 :
+    	*top_left = y_top[7];
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[12+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[8+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[12+i];
+		}
+		break;
+    case 15 :
+    	*top_left = y_top[11];
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			left[i] = y_left[12+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top[i] = y_top[12+i];
+		}
+    	for (i = 0; i < 4; ++i) {
+//#pragma HLS unroll
+			top_right[i] = y_top[16+i];
+		}
+		break;
+    }
+}
+
+
+static int PickBestIntra4(VP8SegmentInfo* const dqm, uint8_t Yin[16*16], uint8_t Yout[16*16],
+		VP8ModeScore* const rd, uint8_t y_left[16], uint8_t y_top_left, uint8_t y_top[20], int* mbtype) {
   const int lambda = dqm->lambda_i4_;
   const int tlambda = dqm->tlambda_;
-  const uint8_t* const src0 = it->yuv_in_ + Y_OFF_ENC;
-  uint8_t* const best_blocks = it->yuv_out2_ + Y_OFF_ENC;
-  int total_header_bits = 0;
+  const uint8_t* const src0 = Yin;
+  uint8_t best_blocks[16][16];
   VP8ModeScore rd_best;
+  uint8_t i_left[16], i_top_left, i_top[20];
+  int i, j, n;
+  const uint16_t VP8Scan[16] = {  // Luma
+    0 +  0 * 16,  4 +  0 * 16, 8 +  0 * 16, 12 +  0 * 16,
+    0 +  4 * 16,  4 +  4 * 16, 8 +  4 * 16, 12 +  4 * 16,
+    0 +  8 * 16,  4 +  8 * 16, 8 +  8 * 16, 12 +  8 * 16,
+    0 + 12 * 16,  4 + 12 * 16, 8 + 12 * 16, 12 + 12 * 16,
+  };
 
-  if (enc->max_i4_header_bits_ == 0) {
-    return 0;
+  i_top_left = y_top_left;
+  for (i = 0; i < 16; ++i) {
+	  i_left[i] = y_left[i];
+  }
+  for (i = 0; i < 20; ++i) {
+	  i_top[i] = y_top[i];
   }
 
   InitScore(&rd_best);
   rd_best.H = 211;  // '211' is the value of VP8BitCost(0, 145)
   SetRDScore(dqm->lambda_mode_, &rd_best);
-  VP8IteratorStartI4(it);
+
+  int i4_ = 0;
+
   do {
     const int kNumBlocks = 1;
     VP8ModeScore rd_i4;
     int mode;
     int best_mode = -1;
-    const uint8_t* const src = src0 + VP8Scan[it->i4_];
-    //const uint16_t* const mode_costs = GetCostModeI4(it, rd->modes_i4);
-    const uint16_t* const mode_costs = VP8FixedCostsI4[0][0];
-    uint8_t* best_block = best_blocks + VP8Scan[it->i4_];
-    uint8_t* tmp_dst = it->yuv_p_ + I4TMP;    // scratch buffer.
+    uint8_t src[16][16];
+    const uint16_t* const mode_costs = VP8FixedCostsI4;
+    uint8_t* best_block = best_blocks[i4_];
+    uint8_t tmp_pred[10][16];    // scratch buffer.
+    uint8_t left[4], top_left, top[4], top_right[4];
+    for(n = 0; n < 16; n++){
+  	  for(j = 0; j < 4; j++){
+  		  for(i = 0; i < 4; i++){
+  			  src[n][j * 4 + i] = src0[VP8Scan[n] + j * 16 + i];
+  		  }
+  	  }
+    }
 
     InitScore(&rd_i4);
 
-    VP8MakeIntra4Preds(it);
+    picki4b(i4_, i_left, i_top_left, i_top, left, &top_left, top, top_right);
+
+    Intra4Preds_C(tmp_pred, left, top_left, top, top_right);
 
     for (mode = 0; mode < NUM_BMODES; ++mode) {
       VP8ModeScore rd_tmp;
       int16_t tmp_levels[16];
-
+      uint8_t tmp_dst[10][16];
       // Reconstruct
       rd_tmp.nz =
-          ReconstructIntra4(it, tmp_levels, src, tmp_dst, mode) << it->i4_;
+          ReconstructIntra4(tmp_levels, tmp_pred[mode], src[i4_], tmp_dst[mode], dqm->y1_) << i4_;
 
       // Compute RD-score
-      rd_tmp.D = VP8SSE4x4(src, tmp_dst);
-      rd_tmp.SD =
-          tlambda ? MULT_8B(tlambda, VP8TDisto4x4(src, tmp_dst, kWeightY))
-                  : 0;
+      rd_tmp.D = SSE4x4_C(src[i4_], tmp_dst[mode]);
+      rd_tmp.SD = MULT_8B(tlambda, Disto4x4_C(src[i4_], tmp_dst[mode], kWeightY));
       rd_tmp.H = mode_costs[mode];
 
 	  int64_t test_R = 0;
@@ -1096,27 +1417,17 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
 	  }
 	  rd_tmp.R = test_R << 10;
 
-      /*// Add flatness penalty
-      if (mode > 0 && IsFlat(tmp_levels, kNumBlocks, FLATNESS_LIMIT_I4)) {
-        rd_tmp.R = FLATNESS_PENALTY * kNumBlocks;
-      } else {
-        rd_tmp.R = 0;
-      }
-
-      // early-out check
-      SetRDScore(lambda, &rd_tmp);
-      if (best_mode >= 0 && rd_tmp.score >= rd_i4.score) continue;
-
-      // finish computing score
-      rd_tmp.R += VP8GetCostLuma4(it, tmp_levels);*/
       SetRDScore(lambda, &rd_tmp);
 
-      if (best_mode < 0 || rd_tmp.score < rd_i4.score) {
+      if (rd_tmp.score < rd_i4.score) {
         CopyScore(&rd_i4, &rd_tmp);
         best_mode = mode;
-        SwapPtr(&tmp_dst, &best_block);
-        memcpy(rd_best.y_ac_levels[it->i4_], tmp_levels,
-               sizeof(rd_best.y_ac_levels[it->i4_]));
+  	    for (y = 0; y < 16; ++y) {
+  		  rd_best.y_ac_levels[i4_][y] = tmp_levels[y];
+  	    }
+  	    for (y = 0; y < 16; ++y) {
+  		  best_block[y] = tmp_dst[mode][y];
+  	    }
       }
     }
     SetRDScore(dqm->lambda_mode_, &rd_i4);
@@ -1124,49 +1435,67 @@ static int PickBestIntra4(VP8EncIterator* const it, VP8ModeScore* const rd) {
     if (rd_best.score >= rd->score) {
       return 0;
     }
-    //total_header_bits += (int)rd_i4.H;   // <- equal to mode_costs[best_mode];
-    //if (total_header_bits > enc->max_i4_header_bits_) {
-    //  return 0;
-    //}
-    // Copy selected samples if not in the right place already.
-    if (best_block != best_blocks + VP8Scan[it->i4_]) {
-      VP8Copy4x4(best_block, best_blocks + VP8Scan[it->i4_]);
-    }
-    rd->modes_i4[it->i4_] = best_mode;
-    it->top_nz_[it->i4_ & 3] = it->left_nz_[it->i4_ >> 2] = (rd_i4.nz ? 1 : 0);
-  } while (VP8IteratorRotateI4(it, best_blocks));
+    rd->modes_i4[i4_] = best_mode;
+  } while (VP8IteratorRotateI4(i_left, &i_top_left, i_top, &i4_, best_blocks));
 
   // finalize state
   CopyScore(rd, &rd_best);
-  VP8SetIntra4Mode(it, rd->modes_i4);
-  SwapOut(it);
-  memcpy(rd->y_ac_levels, rd_best.y_ac_levels, sizeof(rd->y_ac_levels));
+
+  for(n = 0; n < 16; n++){
+	  for(j = 0; j < 4; j++){
+		  for(i = 0; i < 4; i++){
+			  Yout[VP8Scan[n] + j * 16 + i] = best_blocks[n][j * 4 + i];
+		  }
+	  }
+  }
+
+    for (j = 0; j < 16; ++j) {
+        for (i = 0; i < 16; ++i) {
+        	rd->y_ac_levels[j][i] = rd_best.y_ac_levels[j][i];
+        }
+    }
+    *mbtype = 1;
   return 1;   // select intra4x4 over intra16x16
 }
 
 //------------------------------------------------------------------------------
 
-static void PickBestUV(VP8EncIterator* const it, VP8ModeScore* const rd) {
+static void PickBestUV(VP8SegmentInfo* const dqm, uint8_t UVin[8*16], uint8_t UVPred[8][8*8],
+		uint8_t UVout[8*16], VP8ModeScore* const rd, int x) {
   const int kNumBlocks = 8;
-  const VP8SegmentInfo* const dqm = &it->enc_->dqm_[it->mb_->segment_];
   const int lambda = dqm->lambda_uv_;
-  const uint8_t* const src = it->yuv_in_ + U_OFF_ENC;
-  uint8_t* tmp_dst = it->yuv_out2_ + U_OFF_ENC;  // scratch buffer
-  uint8_t* dst0 = it->yuv_out_ + U_OFF_ENC;
-  uint8_t* dst = dst0;
+  const uint8_t* const src = UVin;
+  uint8_t tmp_dst[8*16];  // scratch buffer
+  uint8_t* dst = UVout;
   VP8ModeScore rd_best;
+  uint8_t tmp_p[4][8*16];
+  DError top_derr[1024], left_derr;
   int mode;
+  int i, j, k;
 
+  for (i = 0; i < 4; ++i) {
+	for (j = 0; j < 128; j = j + 16) {
+		for (k = 0; k < 8; ++k) {
+			tmp_p[i][j+k] = UVPred[i][(j>>1)+k];
+		}
+	}
+	for (j = 8; j < 128; j = j + 16) {
+		for (k = 0; k < 8; ++k) {
+			tmp_p[i][j+k] = UVPred[i+4][((j-8)>>1)+k];
+		}
+	}
+  }
   rd->mode_uv = -1;
   InitScore(&rd_best);
   for (mode = 0; mode < NUM_PRED_MODES; ++mode) {
     VP8ModeScore rd_uv;
 
     // Reconstruct
-    rd_uv.nz = ReconstructUV(it, &rd_uv, tmp_dst, mode);
+    rd_uv.nz = ReconstructUV(rd_uv.uv_levels, tmp_p[mode], src, tmp_dst,
+    		dqm->uv_, top_derr, left_derr, x, rd_uv.derr);
 
     // Compute RD-score
-    rd_uv.D  = VP8SSE16x8(src, tmp_dst);
+    rd_uv.D  = SSE16x8_C(src, tmp_dst);
     rd_uv.SD = 0;    // not calling TDisto here: it tends to flatten areas.
     rd_uv.H  = VP8FixedCostsUV[mode];
 
@@ -1179,32 +1508,30 @@ static void PickBestUV(VP8EncIterator* const it, VP8ModeScore* const rd) {
 	}
 	rd_uv.R = test_R << 10;
 
-	
-    /*rd_uv.R  = VP8GetCostUV(it, &rd_uv);
-    if (mode > 0 && IsFlat(rd_uv.uv_levels[0], kNumBlocks, FLATNESS_LIMIT_UV)) {
-      rd_uv.R += FLATNESS_PENALTY * kNumBlocks;
-    }*/
-
     SetRDScore(lambda, &rd_uv);
 
-    if (mode == 0 || rd_uv.score < rd_best.score) {
+    if (rd_uv.score < rd_best.score) {
       CopyScore(&rd_best, &rd_uv);
       rd->mode_uv = mode;
-      memcpy(rd->uv_levels, rd_uv.uv_levels, sizeof(rd->uv_levels));
-      if (it->top_derr_ != NULL) {
-        memcpy(rd->derr, rd_uv.derr, sizeof(rd_uv.derr));
+      for (j = 0; j < 8; ++j) {
+          for (i = 0; i < 16; ++i) {
+        	  rd->uv_levels[j][i] = rd_uv.uv_levels[j][i];
+          }
       }
-      SwapPtr(&dst, &tmp_dst);
+      for (j = 0; j < 2; ++j) {
+          for (i = 0; i < 3; ++i) {
+        	  rd->derr[j][i] = rd_uv.derr[j][i];
+          }
+      }
+      for (j = 0; j < 128; ++j) {
+    	  dst[j] = tmp_dst[j];
+      }
     }
   }
-  VP8SetIntraUVMode(it, rd->mode_uv);
+
   AddScore(rd, &rd_best);
-  if (dst != dst0) {   // copy 16x8 block if needed
-    VP8Copy16x8(dst, dst0);
-  }
-  if (it->top_derr_ != NULL) {  // store diffusion errors for next block
-    StoreDiffusionErrors(it, rd);
-  }
+  // store diffusion errors for next block
+  StoreDiffusionErrors(top_derr, left_derr, x, rd);
 }
 
 //------------------------------------------------------------------------------
@@ -1343,25 +1670,28 @@ static void RefineUsingDistortion(VP8EncIterator* const it,
 //------------------------------------------------------------------------------
 // Entry point
 
-int VP8Decimate(VP8EncIterator* const it, VP8ModeScore* const rd,
-                VP8RDLevel rd_opt) {
-  int is_skipped;
-  const int method = it->enc_->method_;
+void VP8Decimate(uint8_t Yin[16*16], uint8_t Yout16[16*16], uint8_t Yout4[16*16],
+		VP8SegmentInfo* const dqm, uint8_t UVin[8*16], uint8_t UVout[8*16], int* is_skipped,
+		uint8_t left_y[16], uint8_t top_y[20], uint8_t top_left_y, int* mbtype,
+		uint8_t left_u[8], uint8_t top_u[8], uint8_t top_left_u,uint8_t left_v[8],
+		uint8_t top_v[8], uint8_t top_left_v, int x, int y, VP8ModeScore* const rd) {
+
+  uint8_t YPred[4][16*16];
+  uint8_t UVPred[8][8*8];
 
   InitScore(rd);
 
   // We can perform predictions for Luma16x16 and Chroma8x8 already.
   // Luma4x4 predictions needs to be done as-we-go.
 
-  VP8MakeLuma16Preds(it);
+  Intra16Preds_C( YPred, left_y, top_y, top_left_y, x, y);
 
-  VP8MakeChroma8Preds(it);
+  IntraChromaPreds_C(UVPred, left_u, top_u, top_left_u, left_v, top_v, top_left_v, x,  y);
 
-  PickBestIntra16(it, rd);
-  PickBestIntra4(it, rd);
-  PickBestUV(it, rd);
+  PickBestIntra16(Yin, Yout16, YPred, rd, dqm);
+  PickBestIntra4(dqm, Yin, Yout4, rd, left_y, top_left_y, top_y, mbtype);
+  PickBestUV(dqm, UVin, UVPred, UVout, rd, x);
 
-  is_skipped = (rd->nz == 0);
-  VP8SetSkip(it, is_skipped);
-  return is_skipped;
+  *is_skipped = (rd->nz == 0);
 }
+

@@ -153,11 +153,11 @@ static void TransformWHT_C(const int16_t* in, int16_t* out) {
     const int a1 = tmp[1 + i * 4] + tmp[2 + i * 4];
     const int a2 = tmp[1 + i * 4] - tmp[2 + i * 4];
     const int a3 = dc             - tmp[3 + i * 4];
-    out[ 0] = (a0 + a1) >> 3;
-    out[16] = (a3 + a2) >> 3;
-    out[32] = (a0 - a1) >> 3;
-    out[48] = (a3 - a2) >> 3;
-    out += 64;
+    out[0] = (a0 + a1) >> 3;
+    out[1] = (a3 + a2) >> 3;
+    out[2] = (a0 - a1) >> 3;
+    out[3] = (a3 - a2) >> 3;
+    out += 4;
   }
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE
