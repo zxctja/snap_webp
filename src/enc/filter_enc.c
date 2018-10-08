@@ -82,54 +82,56 @@ static int GetILevel(int sharpness, int level) {
   return level;
 }
 
-static void DoFilter(const VP8EncIterator* const it, int level) {
-  const VP8Encoder* const enc = it->enc_;
-  const int ilevel = GetILevel(enc->config_->filter_sharpness, level);
+static void DoFilter(uint8_t Yout4[16*16], uint8_t UVin[8*16], int level) {
+  const int ilevel = (level < 1) ? 1 : level;
   const int limit = 2 * level + ilevel;
+  uint8_t Y[16*16],UV[8*16];
 
-  uint8_t* const y_dst = it->yuv_out2_ + Y_OFF_ENC;
-  uint8_t* const u_dst = it->yuv_out2_ + U_OFF_ENC;
-  uint8_t* const v_dst = it->yuv_out2_ + V_OFF_ENC;
+  uint8_t* const y_dst = Y;
+  uint8_t* const u_dst = UV;
+  uint8_t* const v_dst = UV + 8;
 
   // copy current block to yuv_out2_
-  memcpy(y_dst, it->yuv_out_, YUV_SIZE_ENC * sizeof(uint8_t));
-
-  if (enc->filter_hdr_.simple_ == 1) {   // simple
-    VP8SimpleHFilter16i(y_dst, BPS, limit);
-    VP8SimpleVFilter16i(y_dst, BPS, limit);
-  } else {    // complex
-    const int hev_thresh = (level >= 40) ? 2 : (level >= 15) ? 1 : 0;
-    VP8HFilter16i(y_dst, BPS, limit, ilevel, hev_thresh);
-    VP8HFilter8i(u_dst, v_dst, BPS, limit, ilevel, hev_thresh);
-    VP8VFilter16i(y_dst, BPS, limit, ilevel, hev_thresh);
-    VP8VFilter8i(u_dst, v_dst, BPS, limit, ilevel, hev_thresh);
+  int i;
+  for(i = 0; i < 256; i++){
+	  Y[i] = Yout4[i];
   }
+  for(i = 0; i < 128; i++){
+	  UV[i] = UVin[i];
+  }
+
+  const int hev_thresh = (level >= 40) ? 2 : (level >= 15) ? 1 : 0;
+  HFilter16i_C(y_dst, 16, limit, ilevel, hev_thresh);
+  HFilter8i_C(u_dst, v_dst, 16, limit, ilevel, hev_thresh);
+  VFilter16i_C(y_dst, 16, limit, ilevel, hev_thresh);
+  VFilter8i_C(u_dst, v_dst, 16, limit, ilevel, hev_thresh);
+
 }
+
 
 //------------------------------------------------------------------------------
 // SSIM metric for one macroblock
 
-static double GetMBSSIM(const uint8_t* yuv1, const uint8_t* yuv2) {
+static double GetMBSSIM(uint8_t Yin[16*16], uint8_t Yout4[16*16],
+		uint8_t UVin[8*16], uint8_t UVout[8*16]) {
   int x, y;
   double sum = 0.;
 
   // compute SSIM in a 10 x 10 window
   for (y = VP8_SSIM_KERNEL; y < 16 - VP8_SSIM_KERNEL; y++) {
     for (x = VP8_SSIM_KERNEL; x < 16 - VP8_SSIM_KERNEL; x++) {
-      sum += VP8SSIMGetClipped(yuv1 + Y_OFF_ENC, BPS, yuv2 + Y_OFF_ENC, BPS,
-                               x, y, 16, 16);
+      sum += SSIMGetClipped_C(Yin, 16, Yout4, 16, x, y, 16, 16);
     }
   }
   for (x = 1; x < 7; x++) {
     for (y = 1; y < 7; y++) {
-      sum += VP8SSIMGetClipped(yuv1 + U_OFF_ENC, BPS, yuv2 + U_OFF_ENC, BPS,
-                               x, y, 8, 8);
-      sum += VP8SSIMGetClipped(yuv1 + V_OFF_ENC, BPS, yuv2 + V_OFF_ENC, BPS,
-                               x, y, 8, 8);
+      sum += SSIMGetClipped_C(UVin, 16, UVout, 16, x, y, 8, 8);
+      sum += SSIMGetClipped_C(UVin + 8, 16, UVout + 8, 16, x, y, 8, 8);
     }
   }
   return sum;
 }
+
 
 #endif  // !defined(WEBP_REDUCE_SIZE)
 
@@ -153,19 +155,19 @@ void VP8InitFilter(VP8EncIterator* const it) {
 #endif
 }
 
-void VP8StoreFilterStats(VP8EncIterator* const it) {
-#if !defined(WEBP_REDUCE_SIZE)
+typedef double LFStats_My[MAX_LF_LEVELS];
+
+
+void VP8StoreFilterStats(VP8SegmentInfo* const dqm, LFStats_My lf_stats,
+		uint8_t Yin[16*16], uint8_t Yout16[16*16], uint8_t Yout4[16*16],
+		uint8_t UVin[8*16], uint8_t UVout[8*16], ap_uint<1> mbtype, ap_uint<1> skip) {
   int d;
-  VP8Encoder* const enc = it->enc_;
-  const int s = it->mb_->segment_;
-  const int level0 = enc->dqm_[s].fstrength_;
+  const int level0 = dqm->fstrength_;
 
   // explore +/-quant range of values around level0
-  const int delta_min = -enc->dqm_[s].quant_;
-  const int delta_max = enc->dqm_[s].quant_;
+  const int delta_min = -dqm->quant_;
+  const int delta_max = dqm->quant_;
   const int step_size = (delta_max - delta_min >= 4) ? 4 : 1;
-
-  if (it->lf_stats_ == NULL) return;
 
   // NOTE: Currently we are applying filter only across the sublock edges
   // There are two reasons for that.
@@ -173,23 +175,22 @@ void VP8StoreFilterStats(VP8EncIterator* const it) {
   // the left and top macro blocks. That will be hard to restore
   // 2. Macro Blocks on the bottom and right are not yet compressed. So we
   // cannot apply filter on the right and bottom macro block edges.
-  if (it->mb_->type_ == 1 && it->mb_->skip_) return;
+
+  if (mbtype == 1 && skip) return;
 
   // Always try filter level  zero
-  (*it->lf_stats_)[s][0] += GetMBSSIM(it->yuv_in_, it->yuv_out_);
+  lf_stats[0] += GetMBSSIM(Yin, Yout4, UVin, UVout);
 
   for (d = delta_min; d <= delta_max; d += step_size) {
     const int level = level0 + d;
     if (level <= 0 || level >= MAX_LF_LEVELS) {
       continue;
     }
-    DoFilter(it, level);
-    (*it->lf_stats_)[s][level] += GetMBSSIM(it->yuv_in_, it->yuv_out2_);
+    DoFilter(Yout4, UVin, level);
+    lf_stats[level] += GetMBSSIM(Yin, Yout4, UVin, UVout);
   }
-#else  // defined(WEBP_REDUCE_SIZE)
-  (void)it;
-#endif  // !defined(WEBP_REDUCE_SIZE)
 }
+
 
 void VP8AdjustFilterStrength(VP8EncIterator* const it) {
   VP8Encoder* const enc = it->enc_;

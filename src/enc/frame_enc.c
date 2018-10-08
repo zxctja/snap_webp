@@ -811,7 +811,7 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
 		uint8_t left_v[8];
 		uint8_t top_v[8];
 		uint8_t top_left_v = 129;
-		int mbtype = 0;
+		int mbtype = 1;
 		int* is_skipped;
 		int x = 0;
 		int y = 0;
@@ -888,7 +888,11 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
       distortion += info.D;
       //StoreSideInfo(&it);
       VP8StoreFilterStats(&it);
-      VP8IteratorExport(&it);
+	  
+	  VP8StoreFilterStats(VP8SegmentInfo* const dqm, LFStats_My lf_stats,
+		uint8_t Yin[16*16], uint8_t Yout16[16*16], uint8_t Yout4[16*16],
+		uint8_t UVin[8*16], uint8_t UVout[8*16], ap_uint<1> mbtype, ap_uint<1> skip)
+		
       VP8IteratorSaveBoundary(&it);
     } while (ok && VP8IteratorNext(&it));
 	

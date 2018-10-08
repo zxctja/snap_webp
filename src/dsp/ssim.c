@@ -46,7 +46,6 @@ static WEBP_INLINE double SSIMCalculation(
     const uint64_t fnum = (2 * xmym + C1) * num_S;
     const uint64_t fden = (xmxm + ymym + C1) * den_S;
     const double r = (double)fnum / fden;
-    assert(r >= 0. && r <= 1.0);
     return r;
   }
   return 1.;   // area is too dark to contribute meaningfully

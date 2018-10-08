@@ -1454,7 +1454,7 @@ static int PickBestIntra4(VP8SegmentInfo* const dqm, uint8_t Yin[16*16], uint8_t
         	rd->y_ac_levels[j][i] = rd_best.y_ac_levels[j][i];
         }
     }
-    *mbtype = 1;
+    *mbtype = 0;
   return 1;   // select intra4x4 over intra16x16
 }
 

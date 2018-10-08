@@ -483,24 +483,35 @@ VP8PredFunc VP8PredChroma8[NUM_B_DC_MODES];
 // 4 pixels in, 2 pixels out
 static WEBP_INLINE void DoFilter2_C(uint8_t* p, int step) {
   const int p1 = p[-2*step], p0 = p[-step], q0 = p[0], q1 = p[step];
-  const int a = 3 * (q0 - p0) + VP8ksclip1[p1 - q1];  // in [-893,892]
-  const int a1 = VP8ksclip2[(a + 4) >> 3];            // in [-16,15]
-  const int a2 = VP8ksclip2[(a + 3) >> 3];
-  p[-step] = VP8kclip1[p0 + a2];
-  p[    0] = VP8kclip1[q0 - a1];
+  const int tmp1 = p1 - q1;
+  const int a = 3 * (q0 - p0) + ((tmp1 < -128) ? -128 : (tmp1 > 127) ? 127 : tmp1);// in [-893,892]
+  const int tmp2 = (a + 4) >> 3;
+  const int tmp3 = (a + 3) >> 3;
+  const int a1 = (tmp2 < -16) ? -16 : (tmp2 > 15) ? 15 : tmp2;// in [-16,15]
+  const int a2 = (tmp3 < -16) ? -16 : (tmp3 > 15) ? 15 : tmp3;
+  const int tmp4 = p0 + a2;
+  const int tmp5 = q0 - a1;
+  p[-step] = (tmp4 < -128) ? -128 : (tmp4 > 127) ? 127 : tmp4;
+  p[    0] = (tmp5 < -128) ? -128 : (tmp5 > 127) ? 127 : tmp5;
 }
 
 // 4 pixels in, 4 pixels out
 static WEBP_INLINE void DoFilter4_C(uint8_t* p, int step) {
   const int p1 = p[-2*step], p0 = p[-step], q0 = p[0], q1 = p[step];
   const int a = 3 * (q0 - p0);
-  const int a1 = VP8ksclip2[(a + 4) >> 3];
-  const int a2 = VP8ksclip2[(a + 3) >> 3];
+  const int tmp2 = (a + 4) >> 3;
+  const int tmp3 = (a + 3) >> 3;
+  const int a1 = (tmp2 < -16) ? -16 : (tmp2 > 15) ? 15 : tmp2;// in [-16,15]
+  const int a2 = (tmp3 < -16) ? -16 : (tmp3 > 15) ? 15 : tmp3;
   const int a3 = (a1 + 1) >> 1;
-  p[-2*step] = VP8kclip1[p1 + a3];
-  p[-  step] = VP8kclip1[p0 + a2];
-  p[      0] = VP8kclip1[q0 - a1];
-  p[   step] = VP8kclip1[q1 - a3];
+  const int tmp4 = p1 + a3;
+  const int tmp5 = p0 + a2;
+  const int tmp6 = q0 - a1;
+  const int tmp7 = q1 - a3;
+  p[-2*step] = (tmp4 < -128) ? -128 : (tmp4 > 127) ? 127 : tmp4;
+  p[-  step] = (tmp5 < -128) ? -128 : (tmp5 > 127) ? 127 : tmp5;
+  p[      0] = (tmp6 < -128) ? -128 : (tmp6 > 127) ? 127 : tmp6;
+  p[   step] = (tmp7 < -128) ? -128 : (tmp7 > 127) ? 127 : tmp7;
 }
 
 // 6 pixels in, 6 pixels out
@@ -522,7 +533,7 @@ static WEBP_INLINE void DoFilter6_C(uint8_t* p, int step) {
 
 static WEBP_INLINE int Hev(const uint8_t* p, int step, int thresh) {
   const int p1 = p[-2*step], p0 = p[-step], q0 = p[0], q1 = p[step];
-  return (VP8kabs0[p1 - p0] > thresh) || (VP8kabs0[q1 - q0] > thresh);
+  return (abs(p1 - p0) > thresh) || (abs(q1 - q0) > thresh);
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE || WEBP_NEON_WORK_AROUND_GCC
 
@@ -539,10 +550,10 @@ static WEBP_INLINE int NeedsFilter2_C(const uint8_t* p,
   const int p3 = p[-4 * step], p2 = p[-3 * step], p1 = p[-2 * step];
   const int p0 = p[-step], q0 = p[0];
   const int q1 = p[step], q2 = p[2 * step], q3 = p[3 * step];
-  if ((4 * VP8kabs0[p0 - q0] + VP8kabs0[p1 - q1]) > t) return 0;
-  return VP8kabs0[p3 - p2] <= it && VP8kabs0[p2 - p1] <= it &&
-         VP8kabs0[p1 - p0] <= it && VP8kabs0[q3 - q2] <= it &&
-         VP8kabs0[q2 - q1] <= it && VP8kabs0[q1 - q0] <= it;
+  if ((4 * abs(p0 - q0) + abs(p1 - q1)) > t) return 0;
+  return abs(p3 - p2) <= it && abs(p2 - p1) <= it &&
+		 abs(p1 - p0) <= it && abs(q3 - q2) <= it &&
+		 abs(q2 - q1) <= it && abs(q1 - q0) <= it;
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE || WEBP_NEON_WORK_AROUND_GCC
 
