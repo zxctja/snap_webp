@@ -160,7 +160,7 @@ typedef double LFStats_My[MAX_LF_LEVELS];
 
 void VP8StoreFilterStats(VP8SegmentInfo* const dqm, LFStats_My lf_stats,
 		uint8_t Yin[16*16], uint8_t Yout16[16*16], uint8_t Yout4[16*16],
-		uint8_t UVin[8*16], uint8_t UVout[8*16], ap_uint<1> mbtype, ap_uint<1> skip) {
+		uint8_t UVin[8*16], uint8_t UVout[8*16], int mbtype, int skip) {
   int d;
   const int level0 = dqm->fstrength_;
 

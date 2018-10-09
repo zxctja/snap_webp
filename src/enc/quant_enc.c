@@ -1469,9 +1469,18 @@ static void PickBestUV(VP8SegmentInfo* const dqm, uint8_t UVin[8*16], uint8_t UV
   uint8_t* dst = UVout;
   VP8ModeScore rd_best;
   uint8_t tmp_p[4][8*16];
-  DError top_derr[1024], left_derr;
+   DError top_derr[1024] = {0}, left_derr = {0};
   int mode;
   int i, j, k;
+
+	if(x == 0){
+		for (i = 0; i < 2; ++i) {
+		  for (j = 0; j < 2; j = j + 16) {
+			  left_derr[i][j] = 0;
+		  }
+		}
+	}
+
 
   for (i = 0; i < 4; ++i) {
 	for (j = 0; j < 128; j = j + 16) {

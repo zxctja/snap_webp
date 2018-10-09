@@ -794,6 +794,8 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
   assert(proba->use_skip_proba_ == 0);
   assert(rd_opt >= RD_OPT_BASIC);   // otherwise, token-buffer won't be useful
   assert(num_pass_left > 0);
+  
+  typedef double LFStats_My[MAX_LF_LEVELS];
 
 	struct DATA {
 		uint8_t Yin[16*16];
@@ -804,17 +806,20 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
 		VP8SegmentInfo* const dqm;
 		uint8_t left_y[16];
 		uint8_t top_y[20];
-		uint8_t top_left_y = 129;
+		uint8_t top_left_y = 127;
 		uint8_t left_u[8];
 		uint8_t top_u[8];
-		uint8_t top_left_u = 129;
+		uint8_t top_left_u = 127;
 		uint8_t left_v[8];
 		uint8_t top_v[8];
-		uint8_t top_left_v = 129;
+		uint8_t top_left_v = 127;
 		int mbtype = 1;
-		int* is_skipped;
+		int is_skipped = 0;
 		int x = 0;
 		int y = 0;
+		int mb_w;
+		int mb_h;
+		LFStats_My lf_stats;
 		}
 	
 	struct DATA data_it;
@@ -865,6 +870,11 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
 	memset(data_it.left_u, 129, 8);
 	memset(data_it.left_v, 129, 8);
 	data_it.dqm = &enc->dqm_[0]
+	data_it.mb_w = enc->mb_w_;
+	data_it.mb_h = enc->mb_h_;
+	for (i = 0; i < MAX_LF_LEVELS; i++) {
+        (data_it.lf_stats_)[i] = 0;
+    }
 	
     SetLoopParams(enc, stats.q);
     ResetTokenStats(enc);
@@ -887,11 +897,10 @@ int VP8EncTokenLoop(VP8Encoder* const enc) {
       }
       distortion += info.D;
       //StoreSideInfo(&it);
-      VP8StoreFilterStats(&it);
 	  
-	  VP8StoreFilterStats(VP8SegmentInfo* const dqm, LFStats_My lf_stats,
-		uint8_t Yin[16*16], uint8_t Yout16[16*16], uint8_t Yout4[16*16],
-		uint8_t UVin[8*16], uint8_t UVout[8*16], ap_uint<1> mbtype, ap_uint<1> skip)
+	  VP8StoreFilterStats(data_it.dqm, data_it.lf_stats,
+		data_it.Yin, data_it.Yout16, data_it.Yout4,
+		data_it.UVin, data_it.UVout, data_it.mbtype, data_it.is_skipped);
 		
       VP8IteratorSaveBoundary(&it);
     } while (ok && VP8IteratorNext(&it));
